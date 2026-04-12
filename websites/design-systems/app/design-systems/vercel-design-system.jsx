@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 const NAV=[
   {id:"recipes",t:"Paste Recipes",i:"📋",g:"BUILD"},
@@ -26,8 +26,77 @@ function Icon({name,size=18,color="#EDEDED"}){const p=ICONS[name];if(!p)return n
 
 const CS={Core:[{n:"bg-1",l:"#FFFFFF",dk:"#000000"},{n:"fg",l:"#000000",dk:"#FFFFFF"},{n:"bg-2",l:"#FAFAFA",dk:"#0A0A0A"}],Gray:[{n:"1",l:"#FAFAFA",dk:"#1A1A1A"},{n:"2",l:"#F5F5F5",dk:"#1F1F1F"},{n:"3",l:"#EBEBEB",dk:"#292929"},{n:"4",l:"#E0E0E0",dk:"#3D3D3D"},{n:"5",l:"#D4D4D4",dk:"#525252"},{n:"6",l:"#C7C7C7",dk:"#5E5E5E"},{n:"7",l:"#525252",dk:"#A3A3A3"},{n:"8",l:"#404040",dk:"#B5B5B5"},{n:"9",l:"#737373",dk:"#8F8F8F"},{n:"10",l:"#171717",dk:"#EDEDED"}],Semantic:[{n:"blue",l:"#0070F3",dk:"#0070F3"},{n:"red",l:"#EE0000",dk:"#FF4444"},{n:"amber",l:"#F5A623",dk:"#F5A623"},{n:"green",l:"#17C964",dk:"#17C964"},{n:"teal",l:"#06B6D4",dk:"#06B6D4"},{n:"purple",l:"#7928CA",dk:"#A855F7"},{n:"pink",l:"#FF0080",dk:"#F472B6"}]};
 
-export default function App(){
-const[a,sa]=useState("recipes");const[th,sth]=useState("dark");const d=th==="dark";
+function DecidePicker({bdr,fg,sub,b}){const[q,sq]=useState("");const items=[
+["Show a deployment/build status","StatusDot","5 states: queued(gray) · building(amber+pulse) · ready(green) · error(red) · canceled(gray). Always pair with text label."],
+["Show loading placeholder while fetching","Skeleton","Must mirror final layout shape exactly. Use animate-pulse. Variants: fixed-size, wrapping children, pill, rounded, squared, no-animation."],
+["Confirm a destructive/irreversible action","Modal","Centered dialog with backdrop blur. Focus trap + Esc close + scroll lock. Type-to-confirm for deletes. Use error variant on confirm button."],
+["Show a detail/filter panel from the side","Sheet / Drawer","Sheet: side panel from any edge (top/right/bottom/left via side prop), any viewport. Drawer: mobile-only bottom sheet with drag handle + custom height. Use Sheet for desktop detail panels, Drawer for mobile modals."],
+["Label, categorize, or tag something","Badge / Pill","Badge: 8 colors (gray/blue/purple/amber/red/pink/green/teal) × solid+subtle + inverted. 3 sizes. Pill: link component based on Badge styling — rounded-full, for clickable tags."],
+["Collect qualitative user feedback","Feedback","5 emoji emotion selector + optional textarea. Desktop = popover anchored to trigger. Mobile = inline below trigger."],
+["Show a transient notification","Toast","Auto-dismisses after ~5s. 4 types: default, success, warning, error. Optional action button ('Undo', 'View'). Use sonner library. Position: bottom-right."],
+["Show a persistent inline message","Note","12 types (default/secondary/tertiary/success/warning/error/alert/lite/ghost/violet/cyan) × outlined+filled. Action button. Label. 3 sizes."],
+["Show an empty/zero-data state","Empty State","Centered: icon + title + description + CTA button. 4 patterns: blank-slate, informational, educational, guide."],
+["Collect a single line of text","Input","h-10, 1px border, blue focus ring. Slots: prefix icon, suffix icon/button. Variants: default, search, error."],
+["Collect multiple lines of text","Textarea","Same border/focus as Input. ⌘+Enter submits (in forms). Auto-resize optional. Character count optional."],
+["Pick one option from a list","Select / Combobox","Select: static dropdown, good for <10 items. Combobox: searchable/filterable, good for 10+ items. Both use menu material shadow."],
+["Pick multiple options","Multi Select","Chip-based display. Search to filter. Click chip × to remove. Use for: tags, categories, permissions."],
+["Toggle a boolean on/off","Switch","role=switch, aria-checked. Space to toggle. Use for instant-apply settings (not inside forms that have a Save button)."],
+["Choose from a few exclusive options","Radio / Choicebox","Radio: 2-5 text options, vertical stack. Choicebox: rich cards with title+description, good for plan selection."],
+["Check/uncheck an option","Checkbox","Square check. Can be standalone or in a group. Use inside forms (not for instant-apply — use Switch for that)."],
+["Navigate between sibling views","Tabs","Underline indicator with transition. Arrow key navigation. Keep all tab panels mounted. Badge counts optional."],
+["Show expandable content sections","Collapse","Animated height transition. Single-open or multi-open mode. Use for: FAQ, settings groups, advanced options."],
+["Pick a date or date range","Calendar","Month grid popup. Single date or range selection. Min/max constraints. Disabled dates. Full keyboard navigation."],
+["Copy a code snippet to clipboard","Snippet","Dark terminal-style background. Copy button in header. Multi-line support. Optional: no prompt, custom width, filename."],
+["Show a right-click or dropdown menu","Context Menu / Menu","material-menu shadow. Grouped items with separators. Keyboard shortcuts right-aligned. Destructive items in red."],
+["Show help text on hover","Tooltip","200ms show delay. 6px radius. Max width 200px. Has stem/arrow. role=tooltip + aria-describedby. Esc to dismiss."],
+["Show a progress bar","Progress","Horizontal bar. Variants: default, dynamic colors (changes at thresholds), themed, with stops (markers)."],
+["Show a score or quota gauge","Gauge","Arc (semicircle) or linear. Color thresholds. Label inside. Use for: storage quota, build score, performance."],
+["Display rows of structured data","Table","1px border container. Sticky header. Hover bg on rows. Sort indicators. Pair with Pagination in card footer."],
+["Quick-search everything (power user)","Command Menu","⌘K trigger. Full-screen search + categorized results + keyboard shortcuts. Use cmdk library. Nested pages."],
+["Show an indeterminate loading state","Spinner","border-2 border-t-foreground rounded-full animate-spin. Use inside buttons during async actions. 16-20px size."],
+["Show loading in inline text","Loading Dots","3 dots with staggered bounce animation. Use in: button loading, chat typing indicator, inline status text."],
+["Show a user's identity","Avatar","Image with fallback to initials. Group variant: stacked circles with +N overflow. Sizes: sm(24)/md(32)/lg(40)."],
+["Navigate back up a page hierarchy","Breadcrumbs","Slash-separated links. Last segment is plain text (current page). Use in dashboard topbar, never in marketing."],
+["Display formatted code with highlighting","Code Block","Syntax-highlighted. Copy button. Line numbers optional. Filename header. Dark bg always."],
+["Show a keyboard shortcut hint","Keyboard Input","Small bordered inline element. Use for: ⌘K, ⌘S, Esc. Pairs with menu items and tooltips."],
+["Page through a large list","Pagination","Previous/Next buttons + page numbers. Show '1-10 of 47'. Place in card footer below table."],
+["Show a project or entity card","Entity","Avatar + name + description + metadata row. Clickable. Use in lists of projects, teams, members."],
+["Switch between light/dark/system theme","Theme Switcher","3-segment toggle or dropdown. Persists preference. Uses next-themes under the hood."],
+["Show a preview of a web page","Browser","Chrome-like frame with URL bar + dots. Use to showcase websites, demos, screenshots inside a realistic frame."],
+["Select a value from a range","Slider","Horizontal track + thumb. Supports min/max/step. Use for: opacity, volume, price range filters."],
+["Offer a primary action with dropdown","Split Button","Primary button + dropdown chevron for secondary actions. Use for: Deploy (+ Rollback, Promote, etc)."],
+["Toggle between grouped options","Toggle","Segmented control (button group). Use for: view mode (grid/list), time range (day/week/month). NOT a Switch."],
+["Show a horizontally scrollable area","Scroller","Overflow container with fade edges + optional scroll arrows. Use for: tab overflow, card carousels."],
+["Reveal more content in a list","Show More","'Show N more' button that reveals hidden items. Use for: long comment threads, truncated lists."],
+["Display a label + value pair","Description","Key-value display. Horizontal or stacked. Use in: settings panels, detail views, metadata sections."],
+["Show a phone number input","Phone","Country code dropdown + number input. Validates international formats. Flag icons for country selector."],
+["Show a hoverable info card on an entity","Context Card","Popover card that appears on hover. Shows preview of linked entity. Use for: user cards, project previews."],
+["Show a relative timestamp","Relative Time Card","'2 minutes ago' with hover to show full date. Auto-updates. Use in: activity feeds, deployment lists."],
+["Show a project deployment banner","Project Banner","Horizontal banner at top of project page. Shows deploy status, branch, commit message. Dismissible."],
+];
+const f=items.filter(([n,c,dd])=>{const s=q.toLowerCase();return n.toLowerCase().includes(s)||c.toLowerCase().includes(s)||dd.toLowerCase().includes(s)});
+return<div><input className="vinput" value={q} onChange={e=>sq(e.target.value)} placeholder='Search: "loading", "feedback", "table", "delete"...' style={{width:"100%",height:"32px",padding:"0 10px",border:`1px solid ${bdr}`,borderRadius:"6px",background:"transparent",color:fg,fontSize:"11px",marginBottom:"10px"}}/><div style={{display:"flex",flexDirection:"column",gap:"2px"}}>{f.map(([n,c,dd],i)=><div key={i} style={{display:"grid",gridTemplateColumns:"220px 110px 1fr",gap:"6px",padding:"5px 8px",border:`1px solid ${b}`,borderRadius:"4px",alignItems:"start"}}><div style={{fontSize:"9.5px"}}>{n}</div><div style={{fontSize:"9.5px",fontWeight:700,color:"#0070F3"}}>{c}</div><div style={{fontSize:"8px",color:sub,lineHeight:1.4}}>{dd}</div></div>)}</div><div style={{fontSize:"9px",color:sub,marginTop:"8px"}}>{f.length} of {items.length} components shown</div></div>}
+
+function LiveTabs({bdr,sub,fg}){const[t,st]=useState(0);return<div><div style={{borderBottom:`1px solid ${bdr}`,display:"flex"}}>{["Overview","Deployments","Analytics","Settings"].map((l,i)=><button key={i} onClick={()=>st(i)} className={`vtab ${i===t?"active":""}`}>{l}</button>)}</div><div style={{padding:"10px",fontSize:"11px",color:sub}}>Content: <strong style={{color:fg}}>{["Overview — stats and recent activity","Deployments — build history and status","Analytics — visitors and performance","Settings — project configuration"][t]}</strong></div></div>}
+
+function EmailCheck({bdr,fg,sub}){const[v,sv]=useState("");const err=v.length>0&&!v.includes("@");const ok=v.includes("@")&&v.includes(".");return<div style={{maxWidth:"260px"}}><label style={{fontSize:"9px",fontWeight:600,marginBottom:"3px",display:"block"}}>Email Address</label><input className="vinput" value={v} onChange={e=>sv(e.target.value)} placeholder="you@example.com" style={{width:"100%",height:"32px",padding:"0 8px",border:`1px solid ${err?"#EE0000":ok?"#17C964":bdr}`,borderRadius:"5px",background:"transparent",color:fg,fontSize:"11px"}}/><div style={{fontSize:"9px",marginTop:"3px",color:err?"#EE0000":ok?"#17C964":sub}}>{v===""?"Required field":err?"Must be a valid email address":ok?"✓ Looks good!":"Keep typing..."}</div></div>}
+
+function LoadingBtn({fg,bg,sub}){const[ld,sld]=useState(false);return<div style={{display:"flex",gap:"8px",alignItems:"center"}}><button className="vbtn" onClick={()=>{sld(true);setTimeout(()=>sld(false),2000)}} style={{height:"34px",padding:"0 18px",fontSize:"11px",fontWeight:500,background:fg,color:bg,border:"none",borderRadius:"6px",minWidth:"110px",display:"flex",alignItems:"center",justifyContent:"center",gap:"5px"}}>{ld?<>{[0,1,2].map(i=><div key={i} style={{width:"4px",height:"4px",borderRadius:"9999px",background:bg,animation:`dotBounce 1.4s ease-in-out infinite`,animationDelay:`${i*160}ms`}}/>)}</>:"Deploy Now"}</button><span style={{fontSize:"9px",color:sub}}>{ld?"Deploying...":"Click to see loading state"}</span></div>}
+
+function SwitchGroup({fg,bg2,bdr,sub}){const[s1,ss1]=useState(false);const[s2,ss2]=useState(true);const[s3,ss3]=useState(false);return<div style={{display:"flex",gap:"24px",alignItems:"center"}}>{[[s1,ss1,"Analytics"],[s2,ss2,"Notifications"],[s3,ss3,"Disabled"]].map(([v,fn,l],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"8px"}}><button onClick={()=>i<2&&fn(!v)} role="switch" aria-checked={v} style={{position:"relative",width:"36px",height:"20px",borderRadius:"9999px",background:v?fg:bg2,border:v?"none":`1px solid ${bdr}`,cursor:i<2?"pointer":"not-allowed",opacity:i===2?.4:1,transition:"background .15s"}}><span style={{position:"absolute",top:"3px",left:v?"19px":"3px",width:"14px",height:"14px",borderRadius:"9999px",background:v?fg==="#EDEDED"?"#000":"#fff":fg,transition:"left .15s",boxShadow:"0 1px 2px rgba(0,0,0,.1)"}}/></button><span style={{fontSize:"10px",color:i===2?sub:fg}}>{l}</span></div>)}</div>}
+
+function ProgressDemo({bdr,bg2,fg,bg,sub}){const[pct,sp]=useState(33);return<div><div style={{display:"flex",gap:"10px",marginBottom:"8px"}}>{[0,25,50,75,100].map(v=><button key={v} onClick={()=>sp(v)} className="vbtn" style={{height:"24px",padding:"0 8px",fontSize:"9px",border:`1px solid ${bdr}`,borderRadius:"4px",background:pct===v?fg:"transparent",color:pct===v?bg:fg}}>{v}%</button>)}</div><div style={{height:"4px",borderRadius:"9999px",background:bg2,overflow:"hidden"}}><div style={{width:`${pct}%`,height:"100%",borderRadius:"9999px",background:pct===100?"#17C964":"#0070F3",transition:"width .3s cubic-bezier(0.22,1,0.36,1)"}}/></div><div style={{fontSize:"9px",color:sub,marginTop:"4px"}}>{pct === 0 ? "Not started" : pct === 100 ? "✓ Complete" : `${pct}% — Building...`}</div></div>}
+
+function SkeletonToggle({bdr,sub,skBg,fg}){const[loaded,sl]=useState(false);return<div><button onClick={()=>sl(!loaded)} className="vbtn" style={{height:"24px",padding:"0 10px",fontSize:"9px",border:`1px solid ${bdr}`,borderRadius:"4px",background:"transparent",color:fg,marginBottom:"8px"}}>{loaded?"Show Skeleton":"Show Loaded"}</button><div style={{border:`1px solid ${bdr}`,borderRadius:"6px",padding:"12px",maxWidth:"280px"}}>{loaded?<><div style={{display:"flex",gap:"8px",marginBottom:"10px"}}><div style={{width:"28px",height:"28px",borderRadius:"9999px",background:"#525252"}}/><div><div style={{fontSize:"11px",fontWeight:600}}>Evil Rabbit</div><div style={{fontSize:"9px",color:sub}}>Production · 2m ago</div></div></div><div style={{fontSize:"10px"}}>Build completed in 3.2s</div></>:<><div style={{display:"flex",gap:"8px",marginBottom:"10px"}}><div style={{width:"28px",height:"28px",borderRadius:"9999px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/><div style={{display:"flex",flexDirection:"column",gap:"4px"}}><div style={{width:"80px",height:"8px",borderRadius:"3px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/><div style={{width:"120px",height:"6px",borderRadius:"3px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/></div></div><div style={{width:"100%",height:"12px",borderRadius:"3px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/></>}</div></div>}
+
+function TooltipItem({label,icon,bdr,fg,bg}){const[show,setShow]=useState(false);return<div style={{position:"relative"}}><button onMouseEnter={()=>setShow(true)} onMouseLeave={()=>setShow(false)} className="vbtn" style={{width:"32px",height:"32px",display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${bdr}`,borderRadius:"6px",background:"transparent",fontSize:"14px"}}>{icon}</button>{show&&<div style={{position:"absolute",bottom:"100%",left:"50%",transform:"translateX(-50%)",marginBottom:"6px",padding:"4px 8px",borderRadius:"4px",background:fg,color:bg,fontSize:"9px",fontWeight:500,whiteSpace:"nowrap",pointerEvents:"none"}}>{label}<div style={{position:"absolute",top:"100%",left:"50%",transform:"translateX(-50%)",width:0,height:0,borderLeft:"4px solid transparent",borderRight:"4px solid transparent",borderTop:`4px solid ${fg}`}}/></div>}</div>}
+
+function SwatchBtn({c,d,bdr}){const hex=d?c.dk:c.l;const[cp,scp]=useState(false);return<button onClick={()=>{navigator.clipboard.writeText(hex);scp(true);setTimeout(()=>scp(false),1200)}} style={{background:hex,border:`1px solid ${bdr}`,borderRadius:"3px",padding:"6px 8px",cursor:"pointer",minWidth:"68px"}}><div style={{fontSize:"7px",fontFamily:"monospace",color:"#fff",mixBlendMode:"difference"}}>{cp?"✓":hex}</div><div style={{fontSize:"8px",fontWeight:600,color:"#fff",mixBlendMode:"difference"}}>{c.n}</div></button>}
+
+function ContrastChecker({d,bdr,fg}){const[f1,sf]=useState(d?"#EDEDED":"#171717");const[b1,sb]=useState(d?"#000000":"#FFFFFF");const r=wcag(f1,b1);const aa=parseFloat(r)>=4.5;return<div style={{display:"flex",gap:"10px"}}><div style={{display:"flex",flexDirection:"column",gap:"6px"}}>{[["FG",f1,sf],["BG",b1,sb]].map(([l,v,fn])=><div key={l} style={{display:"flex",gap:"3px",alignItems:"center"}}><span style={{fontSize:"7px",fontWeight:600,width:"16px"}}>{l}</span><input type="color" value={v} onChange={e=>fn(e.target.value)} style={{width:"24px",height:"24px",border:"none",padding:0,cursor:"pointer"}}/><input className="vinput" value={v} onChange={e=>fn(e.target.value)} style={{width:"68px",height:"24px",padding:"0 4px",border:`1px solid ${bdr}`,borderRadius:"3px",background:"transparent",color:fg,fontSize:"8px",fontFamily:"monospace"}}/></div>)}</div><div style={{padding:"10px",borderRadius:"5px",background:b1,flex:1,textAlign:"center"}}><div style={{fontSize:"20px",fontWeight:800,color:f1}}>{r}:1</div></div><div style={{display:"flex",flexDirection:"column",gap:"2px",justifyContent:"center"}}>{[["AA",4.5,aa],["AAA",7,parseFloat(r)>=7],["Lg",3,parseFloat(r)>=3]].map(([l,th,p])=><div key={l} style={{display:"flex",alignItems:"center",gap:"2px"}}><span style={{width:"14px",height:"14px",borderRadius:"3px",background:p?"#17C964":"#EE0000",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"7px",color:"#fff"}}>{p?"✓":"✕"}</span><span style={{fontSize:"8px"}}>{l}</span></div>)}</div></div>}
+
+export default function App({initialSection="recipes"}={}){
+const[a,sa]=useState(initialSection);const[th,sth]=useState("dark");const d=th==="dark";
 const b=d?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)";const sub="#737373";
 const fg=d?"#EDEDED":"#171717";const bg=d?"#000":"#fff";const bg2=d?"#0A0A0A":"#FAFAFA";
 const bdr=d?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)";const bdrH=d?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)";const skBg=d?"#1A1A1A":"#F0F0F0";
@@ -52,6 +121,96 @@ return<div style={{background:bg,color:fg,minHeight:"100vh",fontFamily:"'Urbanis
 
 {/* ═══ RECIPES ═══ */}
 {a==="recipes"&&<div><H2>Copy-Paste Recipes</H2><P>14 production patterns. Complete — paste directly into Next.js + Tailwind.</P>
+<H3>Preview — All 14 Recipes</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{/* 1. Dashboard Shell */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"4px",background:bg,height:"100px",display:"flex",overflow:"hidden"}}>
+<div style={{width:"32%",borderRight:`1px solid ${b}`,padding:"4px",display:"flex",flexDirection:"column",gap:"2px"}}>
+<div style={{display:"flex",alignItems:"center",gap:"3px",paddingBottom:"4px",borderBottom:`1px solid ${b}`}}><div style={{width:"10px",height:"10px",borderRadius:"2px",background:"linear-gradient(135deg,#0070F3,#7928CA)"}}/><div style={{height:"4px",width:"60%",background:bdr,borderRadius:"2px"}}/></div>
+{[0,1,2,3].map(i=><div key={i} style={{height:"4px",width:`${70-i*8}%`,background:i===1?bdrH:bdr,borderRadius:"2px"}}/>)}
+</div>
+<div style={{flex:1,padding:"4px",display:"flex",flexDirection:"column",gap:"2px"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingBottom:"4px",borderBottom:`1px solid ${b}`}}><div style={{height:"5px",width:"40%",background:fg,borderRadius:"2px"}}/><div style={{width:"16px",height:"6px",background:fg,borderRadius:"2px"}}/></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"3px",marginTop:"2px"}}>{[0,1,2].map(i=><div key={i} style={{height:"18px",background:bg2,borderRadius:"2px",border:`1px solid ${b}`}}/>)}</div>
+<div style={{height:"22px",background:bg2,borderRadius:"2px",border:`1px solid ${b}`,marginTop:"2px"}}/>
+</div>
+</div>
+{/* 2. Marketing Section */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",background:bg,height:"100px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"4px"}}>
+<div style={{fontSize:"14px",fontWeight:800,letterSpacing:"-0.03em"}}>Ship faster</div>
+<div style={{fontSize:"7px",color:sub}}>Subheadline copy goes here</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"2px",width:"100%",marginTop:"4px"}}>{[0,1,2].map(i=><div key={i} style={{padding:"4px",background:bg2,border:`1px solid ${b}`,borderRadius:"3px"}}><div style={{height:"3px",width:"60%",background:fg,borderRadius:"1px",marginBottom:"2px"}}/><div style={{height:"2px",width:"80%",background:bdr,borderRadius:"1px"}}/></div>)}</div>
+</div>
+{/* 3. Settings Card */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",background:bg,height:"100px",overflow:"hidden",display:"flex",flexDirection:"column"}}>
+<div style={{padding:"8px",flex:1}}>
+<div style={{fontSize:"9px",fontWeight:600,marginBottom:"2px"}}>Project Name</div>
+<div style={{fontSize:"7px",color:sub,marginBottom:"6px"}}>Used to identify your project.</div>
+<div style={{height:"18px",border:`1px solid ${bdr}`,borderRadius:"3px",padding:"0 6px",display:"flex",alignItems:"center",fontSize:"8px",color:sub}}>my-project</div>
+</div>
+<div style={{padding:"4px 8px",borderTop:`1px solid ${b}`,background:bg2,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:"7px",color:sub}}>Max 48 chars</span><span style={{fontSize:"7px",padding:"2px 6px",background:fg,color:bg,borderRadius:"3px",fontWeight:600}}>Save</span></div>
+</div>
+{/* 4. Status Card */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"4px"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{display:"flex",alignItems:"center",gap:"4px"}}><div style={{width:"6px",height:"6px",borderRadius:"9999px",background:"#17C964"}}/><span style={{fontSize:"9px",fontWeight:600}}>Production</span></div><span style={{fontSize:"7px",color:sub}}>2m ago</span></div>
+<div style={{fontSize:"7px",color:sub}}>Deployed from main · 3f2a1b</div>
+<div style={{marginTop:"auto",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"4px",paddingTop:"4px",borderTop:`1px solid ${b}`}}>{[["Build","3.2s"],["Size","142kb"],["Regions","3"]].map(([l,v],i)=><div key={i}><div style={{fontSize:"6px",color:sub}}>{l}</div><div style={{fontSize:"9px",fontWeight:700}}>{v}</div></div>)}</div>
+</div>
+{/* 5. Button Variants */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"4px",justifyContent:"center"}}>
+<div style={{display:"flex",gap:"4px",flexWrap:"wrap"}}>{[["Primary",fg,bg],["Secondary","transparent",fg],["Danger","#EE0000","#fff"]].map(([l,bgc,fgc],i)=><span key={i} style={{fontSize:"8px",padding:"3px 8px",background:bgc,color:fgc,border:bgc==="transparent"?`1px solid ${bdr}`:"none",borderRadius:"4px",fontWeight:500}}>{l}</span>)}</div>
+<div style={{display:"flex",gap:"4px",alignItems:"center"}}>{["sm","md","lg"].map((s,i)=><span key={s} style={{fontSize:i===0?"7px":i===1?"8px":"9px",padding:i===0?"2px 6px":i===1?"3px 8px":"4px 10px",background:fg,color:bg,borderRadius:"4px",fontWeight:500}}>Ship</span>)}</div>
+</div>
+{/* 6. Note / Banner */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"3px",justifyContent:"center"}}>
+{[["#17C964","Success","Build completed successfully."],["#F5A623","Warning","Approaching rate limit (80%)."],["#EE0000","Error","Failed to deploy: module not found."]].map(([c,l,m],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"4px",padding:"4px 6px",background:c+"15",border:`1px solid ${c}30`,borderRadius:"3px"}}><span style={{fontSize:"7px",fontWeight:700,color:c,width:"40px"}}>{l}</span><span style={{fontSize:"7px",color:fg,opacity:0.9}}>{m}</span></div>)}
+</div>
+{/* 7. Input States */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"4px",justifyContent:"center"}}>
+{[["Default",bdr,"Type here..."],["Focus","#0070F3","Project name"],["Error","#EE0000","Required"]].map(([l,bc,ph],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{fontSize:"7px",color:sub,width:"40px"}}>{l}</span><div style={{flex:1,height:"18px",border:`1px solid ${bc}`,boxShadow:l==="Focus"?`0 0 0 2px rgba(0,112,243,0.15)`:"none",borderRadius:"3px",padding:"0 6px",display:"flex",alignItems:"center",fontSize:"7px",color:sub}}>{ph}</div></div>)}
+</div>
+{/* 8. Table */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",background:bg,height:"100px",overflow:"hidden"}}>
+<div style={{padding:"4px 6px",background:bg2,borderBottom:`1px solid ${b}`,display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:"4px",fontSize:"6px",fontWeight:700,color:sub,textTransform:"uppercase"}}><span>Project</span><span>Status</span><span>Updated</span></div>
+{[["evil-rabbit","#17C964","2m"],["marketing","#F5A623","1h"],["dashboard","#17C964","4h"],["api-gateway","#EE0000","1d"]].map(([n,c,u],i)=><div key={i} style={{padding:"4px 6px",borderBottom:i<3?`1px solid ${b}`:"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:"4px",alignItems:"center",fontSize:"8px"}}><span style={{fontWeight:500}}>{n}</span><div style={{display:"flex",alignItems:"center",gap:"3px"}}><span style={{width:"4px",height:"4px",borderRadius:"9999px",background:c}}/><span style={{fontSize:"7px",color:sub}}>ready</span></div><span style={{fontSize:"7px",color:sub}}>{u} ago</span></div>)}
+</div>
+{/* 9. Auth Form */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"4px",alignItems:"center",justifyContent:"center"}}>
+<div style={{fontSize:"11px",fontWeight:700,letterSpacing:"-0.02em"}}>Sign In</div>
+<div style={{height:"16px",width:"80%",border:`1px solid ${bdr}`,borderRadius:"3px",padding:"0 6px",display:"flex",alignItems:"center",fontSize:"7px",color:sub}}>you@example.com</div>
+<div style={{height:"16px",width:"80%",border:`1px solid ${bdr}`,borderRadius:"3px",padding:"0 6px",display:"flex",alignItems:"center",fontSize:"7px",color:sub}}>••••••••</div>
+<div style={{height:"16px",width:"80%",background:fg,color:bg,borderRadius:"3px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:600}}>Continue →</div>
+</div>
+{/* 10. Avatar Stack */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"6px",justifyContent:"center"}}>
+<div style={{display:"flex",alignItems:"center",gap:"6px"}}><div style={{display:"flex"}}>{["#0070F3","#7928CA","#F5A623","#17C964"].map((c,i)=><div key={i} style={{width:"20px",height:"20px",borderRadius:"9999px",background:c,border:`2px solid ${bg}`,marginLeft:i===0?0:"-6px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"8px",fontWeight:700,color:"#fff"}}>{"JKEM"[i]}</div>)}<div style={{width:"20px",height:"20px",borderRadius:"9999px",background:bg2,border:`2px solid ${bg}`,marginLeft:"-6px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:600,color:sub}}>+3</div></div><span style={{fontSize:"8px",color:sub}}>7 members</span></div>
+<div style={{fontSize:"8px",color:sub,lineHeight:1.4}}>Evil Rabbit, Kent Eng, Emma, Marco, and 3 others</div>
+</div>
+{/* 11. Empty State */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"4px",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
+<div style={{width:"22px",height:"22px",borderRadius:"6px",border:`1.5px dashed ${bdr}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",color:sub}}>◇</div>
+<div style={{fontSize:"10px",fontWeight:600}}>No projects yet</div>
+<div style={{fontSize:"7px",color:sub}}>Create your first project to get started</div>
+<div style={{fontSize:"7px",padding:"3px 8px",background:fg,color:bg,borderRadius:"3px",fontWeight:600,marginTop:"2px"}}>+ New Project</div>
+</div>
+{/* 12. Loading Skeleton */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"6px",justifyContent:"center"}}>
+<div style={{display:"flex",alignItems:"center",gap:"6px"}}><div style={{width:"20px",height:"20px",borderRadius:"9999px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/><div style={{flex:1,display:"flex",flexDirection:"column",gap:"3px"}}><div style={{height:"5px",width:"40%",background:skBg,borderRadius:"2px",animation:"pulse 2s ease-in-out infinite"}}/><div style={{height:"4px",width:"60%",background:skBg,borderRadius:"2px",animation:"pulse 2s ease-in-out infinite"}}/></div></div>
+<div style={{height:"4px",width:"100%",background:skBg,borderRadius:"2px",animation:"pulse 2s ease-in-out infinite"}}/>
+<div style={{height:"4px",width:"80%",background:skBg,borderRadius:"2px",animation:"pulse 2s ease-in-out infinite"}}/>
+</div>
+{/* 13. Feedback Widget */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px",background:bg,height:"100px",display:"flex",flexDirection:"column",gap:"4px",justifyContent:"center"}}>
+<div style={{fontSize:"9px",fontWeight:600}}>How was your experience?</div>
+<div style={{display:"flex",gap:"6px"}}>{["😞","😕","😐","🙂","😄"].map((e,i)=><span key={i} style={{fontSize:"14px",padding:"2px 4px",borderRadius:"4px",background:i===3?bg2:"transparent",border:i===3?`1px solid ${bdrH}`:`1px solid transparent`,cursor:"pointer"}}>{e}</span>)}</div>
+<div style={{height:"16px",border:`1px solid ${bdr}`,borderRadius:"3px",padding:"0 6px",display:"flex",alignItems:"center",fontSize:"7px",color:sub}}>Tell us more (optional)</div>
+</div>
+{/* 14. Command Menu */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",background:bg,height:"100px",overflow:"hidden",display:"flex",flexDirection:"column"}}>
+<div style={{padding:"6px 8px",borderBottom:`1px solid ${b}`,display:"flex",alignItems:"center",gap:"4px"}}><span style={{fontSize:"9px",color:sub}}>⌕</span><span style={{fontSize:"8px",color:sub}}>Type a command or search...</span><span style={{marginLeft:"auto",fontSize:"7px",color:sub,padding:"1px 4px",border:`1px solid ${bdr}`,borderRadius:"3px"}}>⌘K</span></div>
+<div style={{flex:1,padding:"3px",display:"flex",flexDirection:"column",gap:"1px"}}>{[["New Project","⌘N","▲"],["Deploy","⌘D","▲"],["Settings","⌘,","◎"],["Invite Team","⌘I","▲"]].map(([l,k,ic],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"4px",padding:"2px 6px",borderRadius:"3px",background:i===0?bg2:"transparent"}}><span style={{fontSize:"7px",color:sub}}>{ic}</span><span style={{fontSize:"7px",flex:1}}>{l}</span><span style={{fontSize:"6px",color:sub}}>{k}</span></div>)}</div>
+</div>
+</div>
 <H3>Layout</H3>
 <CB title="1. Dashboard Shell" code={`export default function Layout({ children }) {
   return (<div className="flex h-screen">
@@ -304,6 +463,33 @@ toast('Project deleted', {
 
 {/* ═══ INFRASTRUCTURE ═══ */}
 {a==="infra"&&<div><H2>Infrastructure Files</H2><P>Drop-in files for the foundational layer. These go in before any components.</P>
+<H3>Preview — What the infrastructure produces</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>Typography Scale</div>
+<div style={{display:"flex",flexDirection:"column",gap:"2px"}}>
+{[["text-5xl",48,"-0.04em",800,"Ship faster"],["text-3xl",30,"-0.03em",700,"Page heading"],["text-xl",20,"-0.02em",600,"Subheading"],["text-base",14,"-0.01em",500,"Body copy"],["text-sm",12,"0",400,"Secondary"],["text-xs",11,"0",400,"Caption"]].map(([n,s,t,w,l],i)=><div key={i} style={{display:"flex",alignItems:"baseline",gap:"8px",padding:"2px 0"}}><span style={{fontSize:"7px",color:sub,fontFamily:"monospace",width:"52px"}}>{n}</span><span style={{fontSize:`${s/2.5}px`,fontWeight:w,letterSpacing:t}}>{l}</span></div>)}
+</div>
+</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>Color Tokens (css vars)</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4px"}}>
+{[["--blue","#0070F3"],["--red","#EE0000"],["--amber","#F5A623"],["--green","#17C964"],["--teal","#06B6D4"],["--purple","#7928CA"],["--pink","#FF0080"],["--foreground",fg]].map(([n,c],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"5px",padding:"3px"}}><div style={{width:"14px",height:"14px",borderRadius:"3px",background:c,border:`1px solid ${bdr}`}}/><span style={{fontSize:"8px",fontFamily:"monospace",color:sub}}>{n}</span></div>)}
+</div>
+</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Shadow Scale</div>
+<div style={{display:"flex",gap:"12px",alignItems:"center",justifyContent:"space-around"}}>
+{[["sm","0 1px 2px rgba(0,0,0,0.04)"],["md","0 2px 8px rgba(0,0,0,0.1)"],["menu","0 4px 24px rgba(0,0,0,0.2)"],["modal","0 8px 40px rgba(0,0,0,0.3)"]].map(([n,s],i)=><div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"4px"}}><div style={{width:"32px",height:"32px",borderRadius:"6px",background:bg,boxShadow:s,border:`1px solid ${b}`}}/><span style={{fontSize:"7px",color:sub,fontFamily:"monospace"}}>{n}</span></div>)}
+</div>
+</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Easing & Radius</div>
+<div style={{display:"flex",flexDirection:"column",gap:"4px"}}>
+{[["rounded-sm",2],["rounded",4],["rounded-md",6],["rounded-lg",8],["rounded-xl",12],["rounded-full",9999]].map(([n,r],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"6px"}}><div style={{width:"20px",height:"14px",borderRadius:`${r}px`,background:fg,opacity:0.9}}/><span style={{fontSize:"7px",color:sub,fontFamily:"monospace"}}>{n}</span></div>)}
+</div>
+</div>
+</div>
 <CB title="app/globals.css — Complete with reset" code={`/* ═══ RESET ═══ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; tab-size: 4; scroll-behavior: smooth; }
@@ -491,6 +677,50 @@ export function cn(...inputs: ClassValue[]) {
 
 {/* ═══ COMPONENT FILES ═══ */}
 {a==="parts"&&<div><H2>Component Files</H2><P>Complete implementations. Paste into components/ui/.</P>
+<H3>Preview — Rendered Components</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Button — 5 types × 3 sizes</div>
+<div style={{display:"flex",flexDirection:"column",gap:"6px"}}>
+<div style={{display:"flex",gap:"4px",alignItems:"center",flexWrap:"wrap"}}>{[["Primary",fg,bg,"none"],["Secondary","transparent",fg,`1px solid ${bdr}`],["Tertiary","transparent",fg,"none"],["Error","#EE0000","#fff","none"],["Success","#17C964","#fff","none"]].map(([l,bgc,fgc,bd],i)=><button key={i} className="vbtn" style={{fontSize:"9px",padding:"4px 10px",background:bgc,color:fgc,border:bd,borderRadius:"5px",fontWeight:500}}>{l}</button>)}</div>
+<div style={{display:"flex",gap:"6px",alignItems:"center"}}>{[["sm","7px","2px 6px"],["md","9px","4px 10px"],["lg","11px","6px 14px"]].map(([n,f,p],i)=><button key={i} className="vbtn" style={{fontSize:f,padding:p,background:fg,color:bg,border:"none",borderRadius:"5px",fontWeight:500}}>Deploy</button>)}</div>
+</div>
+</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Input — default / prefix / error</div>
+<div style={{display:"flex",flexDirection:"column",gap:"4px"}}>
+<input className="vinput" placeholder="Default input" style={{height:"24px",padding:"0 8px",border:`1px solid ${bdr}`,borderRadius:"4px",background:"transparent",color:fg,fontSize:"9px"}}/>
+<div style={{position:"relative"}}><span style={{position:"absolute",left:"6px",top:"50%",transform:"translateY(-50%)",fontSize:"10px",color:sub}}>⌕</span><input className="vinput" placeholder="Search..." style={{height:"24px",padding:"0 8px 0 22px",width:"100%",border:`1px solid ${bdr}`,borderRadius:"4px",background:"transparent",color:fg,fontSize:"9px"}}/></div>
+<input className="vinput" placeholder="Required field" style={{height:"24px",padding:"0 8px",border:`1px solid #EE0000`,borderRadius:"4px",background:"transparent",color:fg,fontSize:"9px"}}/>
+<span style={{fontSize:"7px",color:"#EE0000"}}>This field is required</span>
+</div>
+</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Badge — 8 colors × solid/subtle</div>
+<div style={{display:"flex",gap:"3px",flexWrap:"wrap",marginBottom:"4px"}}>{[["gray","#737373"],["blue","#0070F3"],["purple","#7928CA"],["amber","#F5A623"],["red","#EE0000"],["pink","#FF0080"],["green","#17C964"],["teal","#06B6D4"]].map(([n,c])=><span key={n} style={{fontSize:"8px",padding:"2px 7px",borderRadius:"9999px",background:c,color:"#fff",fontWeight:500}}>{n}</span>)}</div>
+<div style={{display:"flex",gap:"3px",flexWrap:"wrap"}}>{[["gray","#737373"],["blue","#0070F3"],["purple","#7928CA"],["amber","#F5A623"],["red","#EE0000"],["pink","#FF0080"],["green","#17C964"],["teal","#06B6D4"]].map(([n,c])=><span key={n} style={{fontSize:"8px",padding:"2px 7px",borderRadius:"9999px",background:c+"18",color:c,border:`1px solid ${c}30`,fontWeight:500}}>{n}</span>)}</div>
+</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Note — 4 types</div>
+<div style={{display:"flex",flexDirection:"column",gap:"3px"}}>
+{[["#737373","Note","Heads up — this is informational."],["#17C964","Success","Successfully deployed to production."],["#F5A623","Warning","You're approaching your rate limit."],["#EE0000","Error","Deployment failed. Check your logs."]].map(([c,l,m],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"6px",padding:"4px 7px",background:c+"12",border:`1px solid ${c}25`,borderRadius:"4px"}}><span style={{width:"5px",height:"5px",borderRadius:"9999px",background:c}}/><span style={{fontSize:"8px",fontWeight:600,color:c}}>{l}</span><span style={{fontSize:"8px",color:fg,opacity:0.9}}>{m}</span></div>)}
+</div>
+</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Spinner & Loading Dots</div>
+<div style={{display:"flex",gap:"16px",alignItems:"center"}}>
+<div style={{width:"16px",height:"16px",borderRadius:"9999px",border:`2px solid ${bdr}`,borderTopColor:fg,animation:"spin 0.8s linear infinite"}}/>
+<div style={{display:"flex",gap:"3px",alignItems:"center"}}>{[0,1,2].map(i=><div key={i} style={{width:"5px",height:"5px",borderRadius:"9999px",background:fg,animation:"dotBounce 1.4s ease-in-out infinite",animationDelay:`${i*160}ms`}}/>)}</div>
+<button className="vbtn" style={{fontSize:"8px",padding:"3px 8px",background:fg,color:bg,border:"none",borderRadius:"4px",fontWeight:500,display:"flex",alignItems:"center",gap:"4px"}}><div style={{width:"8px",height:"8px",borderRadius:"9999px",border:`1.5px solid ${bg}40`,borderTopColor:bg,animation:"spin 0.8s linear infinite"}}/>Loading</button>
+</div>
+</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Status Dot — 5 states</div>
+<div style={{display:"flex",flexDirection:"column",gap:"4px"}}>
+{[["Ready","#17C964"],["Building","#F5A623"],["Queued","#737373"],["Error","#EE0000"],["Canceled","#737373"]].map(([l,c],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{width:"6px",height:"6px",borderRadius:"9999px",background:c,animation:l==="Building"?"pulse 2s ease-in-out infinite":"none"}}/><span style={{fontSize:"9px",color:fg}}>{l}</span></div>)}
+</div>
+</div>
+</div>
 <CB title="components/ui/button.tsx" code={`import { forwardRef } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -1039,6 +1269,30 @@ export function Spinner({ size = 'md', className }: SpinnerProps) {
 
 {/* ═══ MIGRATION MAP ═══ */}
 {a==="migrate"&&<div><H2>Migration Map</H2><P>Framework → Geist mappings for 4 systems + audit checklist + priority order.</P>
+<H3>Preview — Before / After across 4 frameworks</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{[["Bootstrap","Bootstrap button → Geist",
+  <button style={{background:"#0D6EFD",color:"#fff",padding:"6px 14px",border:"1px solid #0D6EFD",borderRadius:"4px",fontSize:"10px",fontWeight:400,boxShadow:"0 1px 2px rgba(0,0,0,0.15)"}}>Submit</button>,
+  <button style={{background:fg,color:bg,padding:"6px 14px",border:"none",borderRadius:"6px",fontSize:"10px",fontWeight:500}}>Submit</button>],
+["Material UI","MUI card → Geist",
+  <div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:"4px",padding:"8px",boxShadow:"0 2px 4px rgba(0,0,0,0.1)",fontSize:"9px",minWidth:"100px"}}><div style={{fontWeight:500,color:"#000"}}>Project</div><div style={{color:"#666",fontSize:"8px"}}>Updated 2h ago</div></div>,
+  <div style={{background:bg,border:`1px solid ${bdr}`,borderRadius:"8px",padding:"8px",fontSize:"9px",minWidth:"100px"}}><div style={{fontWeight:600,color:fg}}>Project</div><div style={{color:sub,fontSize:"8px"}}>Updated 2h ago</div></div>],
+["Tailwind UI","Tailwind alert → Geist Note",
+  <div style={{background:"#FEF3C7",border:"1px solid #FCD34D",borderRadius:"4px",padding:"6px 10px",fontSize:"9px",color:"#92400E",minWidth:"150px"}}>⚠ Approaching rate limit</div>,
+  <div style={{background:"#F5A62315",border:`1px solid #F5A62330`,borderRadius:"4px",padding:"6px 10px",fontSize:"9px",minWidth:"150px",display:"flex",alignItems:"center",gap:"6px"}}><span style={{width:"5px",height:"5px",borderRadius:"9999px",background:"#F5A623"}}/><span style={{color:"#F5A623",fontWeight:600}}>Warning</span><span style={{color:fg,opacity:0.9}}>Approaching rate limit</span></div>],
+["Chakra UI","Chakra input → Geist Input",
+  <div style={{display:"flex",flexDirection:"column",gap:"3px"}}><span style={{fontSize:"8px",color:"#4A5568",fontWeight:600}}>Email</span><input defaultValue="you@example.com" style={{border:"1px solid #CBD5E0",borderRadius:"4px",padding:"4px 8px",fontSize:"9px",color:"#1A202C"}}/></div>,
+  <div style={{display:"flex",flexDirection:"column",gap:"3px"}}><span style={{fontSize:"8px",color:sub,fontWeight:600}}>Email</span><input defaultValue="you@example.com" className="vinput" style={{border:`1px solid ${bdr}`,borderRadius:"5px",padding:"4px 8px",fontSize:"9px",color:fg,background:"transparent"}}/></div>]
+].map(([fw,caption,before,after],i)=><div key={i} style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}><span style={{fontSize:"8px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:sub}}>{fw}</span><span style={{fontSize:"7px",color:sub}}>→ Geist</span></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",alignItems:"center",gap:"8px"}}>
+<div style={{padding:"6px",background:bg2,borderRadius:"4px",display:"flex",alignItems:"center",justifyContent:"center",minHeight:"40px"}}>{before}</div>
+<span style={{fontSize:"12px",color:sub}}>→</span>
+<div style={{padding:"6px",background:bg2,borderRadius:"4px",display:"flex",alignItems:"center",justifyContent:"center",minHeight:"40px"}}>{after}</div>
+</div>
+<div style={{fontSize:"7px",color:sub,marginTop:"6px",textAlign:"center"}}>{caption}</div>
+</div>)}
+</div>
 <H3>Migration Priority Order</H3>
 <CB title="do-this-first" code={`STEP 1: Install geist + setup layout.tsx + globals.css (30 min)
 STEP 2: Global find-replace borders and backgrounds (see CSS Diff tab) (1 hr)
@@ -1180,6 +1434,37 @@ QA
 
 {/* ═══ CSS DIFF / GREP ═══ */}
 {a==="grep"&&<div><H2>CSS Property Diff + Grep Patterns</H2><P>Literal find → replace for your codebase. Regex patterns to find everything that needs changing.</P>
+<H3>Preview — CSS Property Diffs</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{[
+["Border","#E5E7EB solid gray → rgba(0,0,0,0.08)",
+  <div style={{padding:"8px",background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:"6px",fontSize:"9px",color:"#111"}}>Card content</div>,
+  <div style={{padding:"8px",background:bg,border:`1px solid ${bdr}`,borderRadius:"6px",fontSize:"9px",color:fg}}>Card content</div>],
+["Shadow","drop-shadow-lg → menu shadow",
+  <div style={{padding:"8px",background:"#fff",borderRadius:"6px",boxShadow:"0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -4px rgba(0,0,0,0.1)",fontSize:"9px",color:"#111"}}>Elevated</div>,
+  <div style={{padding:"8px",background:bg,border:`1px solid ${bdr}`,borderRadius:"8px",boxShadow:"0 4px 24px rgba(0,0,0,0.1)",fontSize:"9px",color:fg}}>Elevated</div>],
+["Radius","rounded-sm(2px) → rounded-md(6px)",
+  <div style={{padding:"8px 14px",background:"#0070F3",color:"#fff",borderRadius:"2px",fontSize:"9px",fontWeight:500}}>Button</div>,
+  <div style={{padding:"8px 14px",background:fg,color:bg,borderRadius:"6px",fontSize:"9px",fontWeight:500}}>Button</div>],
+["Text","gray-500 small → gray-9 sans",
+  <div style={{fontSize:"10px",color:"#6B7280",fontFamily:"sans-serif"}}>Subtext description</div>,
+  <div style={{fontSize:"11px",color:"#737373",letterSpacing:"-0.01em"}}>Subtext description</div>],
+["Focus","blue ring 3px → ring 2px 15%",
+  <input defaultValue="focused" style={{border:"2px solid #3B82F6",outline:"3px solid #BFDBFE",borderRadius:"4px",padding:"4px 8px",fontSize:"9px"}}/>,
+  <input defaultValue="focused" style={{border:`1px solid #0070F3`,boxShadow:"0 0 0 2px rgba(0,112,243,0.15)",borderRadius:"5px",padding:"4px 8px",fontSize:"9px",background:"transparent",color:fg,outline:"none"}}/>],
+["Button","bg-blue-500 hover:bg-blue-600 → fg/bg",
+  <button style={{background:"#3B82F6",color:"#fff",padding:"6px 14px",border:"none",borderRadius:"4px",fontSize:"9px",fontWeight:600}}>Save</button>,
+  <button style={{background:fg,color:bg,padding:"6px 14px",border:"none",borderRadius:"6px",fontSize:"9px",fontWeight:500}}>Save</button>]
+].map(([title,caption,before,after],i)=><div key={i} style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}><span style={{fontSize:"8px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:sub}}>{title}</span></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",alignItems:"center",gap:"8px"}}>
+<div style={{padding:"8px",background:bg2,borderRadius:"4px",display:"flex",alignItems:"center",justifyContent:"center",minHeight:"44px"}}>{before}</div>
+<span style={{fontSize:"12px",color:sub}}>→</span>
+<div style={{padding:"8px",background:bg2,borderRadius:"4px",display:"flex",alignItems:"center",justifyContent:"center",minHeight:"44px"}}>{after}</div>
+</div>
+<div style={{fontSize:"7px",color:sub,marginTop:"6px",textAlign:"center",fontFamily:"monospace"}}>{caption}</div>
+</div>)}
+</div>
 <H3>Property-Level Replacements</H3>
 <CB title="css-diff" code={`BORDERS (the #1 migration task)
   border: 1px solid #e5e5e5      →  border: 1px solid var(--border)
@@ -1271,6 +1556,36 @@ Replace:  rounded-md`}/>
 
 {/* ═══ RESPONSIVE RULES ═══ */}
 {a==="rbreak"&&<div><H2>Responsive Behavior Rules</H2><P>Not just "grid collapses" — when each layout element changes form.</P>
+<H3>Preview — Layout across breakpoints</H3>
+<div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"14px"}}>
+{[
+["Mobile","sm · 640px","320px",
+  <div style={{display:"flex",flexDirection:"column",gap:"3px",width:"100%"}}>
+    <div style={{display:"flex",justifyContent:"space-between",padding:"4px 6px",background:bg2,borderRadius:"3px"}}><span style={{fontSize:"8px",fontWeight:600}}>≡</span><span style={{fontSize:"8px",fontWeight:600}}>Logo</span><span style={{fontSize:"8px"}}>⌕</span></div>
+    <div style={{padding:"4px 6px",background:bg2,borderRadius:"3px",fontSize:"7px",color:sub}}>Main content — 1 col</div>
+    <div style={{padding:"4px 6px",background:bg2,borderRadius:"3px",fontSize:"7px",color:sub}}>Sidebar below</div>
+  </div>],
+["Tablet","md · 768px","500px",
+  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"3px",width:"100%"}}>
+    <div style={{gridColumn:"span 2",padding:"4px 6px",background:bg2,borderRadius:"3px",display:"flex",justifyContent:"space-between"}}><span style={{fontSize:"8px",fontWeight:600}}>Logo</span><span style={{fontSize:"8px"}}>User ▼</span></div>
+    <div style={{padding:"4px 6px",background:bg2,borderRadius:"3px",fontSize:"7px",color:sub}}>Col A</div>
+    <div style={{padding:"4px 6px",background:bg2,borderRadius:"3px",fontSize:"7px",color:sub}}>Col B</div>
+  </div>],
+["Desktop","lg · 1024px+","720px",
+  <div style={{display:"grid",gridTemplateColumns:"120px 1fr",gap:"3px",width:"100%"}}>
+    <div style={{gridColumn:"span 2",padding:"4px 6px",background:bg2,borderRadius:"3px",display:"flex",justifyContent:"space-between"}}><span style={{fontSize:"8px",fontWeight:600}}>Acme Inc</span><span style={{fontSize:"8px"}}>Settings · User ▼</span></div>
+    <div style={{padding:"4px 6px",background:bg2,borderRadius:"3px",fontSize:"7px",color:sub,display:"flex",flexDirection:"column",gap:"2px"}}><span>Nav item 1</span><span>Nav item 2</span><span>Nav item 3</span></div>
+    <div style={{padding:"4px 6px",background:bg2,borderRadius:"3px",fontSize:"7px",color:sub,minHeight:"50px"}}>Main content — full sidebar visible, 2–3 column grid</div>
+  </div>]
+].map(([name,bp,w,layout],i)=><div key={i} style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",display:"flex",alignItems:"center",gap:"12px"}}>
+<div style={{width:"80px",flexShrink:0}}><div style={{fontSize:"10px",fontWeight:700}}>{name}</div><div style={{fontSize:"7px",color:sub,fontFamily:"monospace"}}>{bp}</div></div>
+<div style={{flex:1,maxWidth:w,border:`1px dashed ${bdr}`,borderRadius:"4px",padding:"4px",background:bg}}>{layout}</div>
+</div>)}
+</div>
+<H3>Breakpoints Visualized</H3>
+<div style={{display:"flex",alignItems:"flex-end",gap:"3px",height:"60px",marginBottom:"14px",padding:"0 6px"}}>
+{[["sm",640,"#737373"],["md",768,"#0070F3"],["lg",1024,"#17C964"],["xl",1280,"#F5A623"],["2xl",1536,"#7928CA"]].map(([n,w,c],i)=><div key={n} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"2px",flex:1}}><div style={{width:"100%",height:`${(w/1536)*100}%`,background:c,borderRadius:"3px 3px 0 0",opacity:0.8}}/><span style={{fontSize:"7px",fontWeight:600,fontFamily:"monospace"}}>{n}</span><span style={{fontSize:"6px",color:sub}}>{w}</span></div>)}
+</div>
 <CB title="breakpoint-behavior" code={`BREAKPOINTS (Tailwind defaults, Geist-compatible)
   sm: 640px    md: 768px    lg: 1024px    xl: 1280px    2xl: 1536px
 
@@ -1341,6 +1656,67 @@ SERVER COMPONENTS (no JS needed)
 
 {/* ═══ HARD PROBLEMS ═══ */}
 {a==="hard"&&<div><H2>Hard Problems</H2><P>The components that take the most time. Annotated implementations.</P>
+<H3>Preview — The hard components, rendered</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{/* Command Menu */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>⌘K Command Menu</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"6px",background:bg,overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,0.15)"}}>
+<div style={{padding:"6px 10px",borderBottom:`1px solid ${b}`,display:"flex",alignItems:"center",gap:"6px"}}><span style={{fontSize:"11px",color:sub}}>⌕</span><input defaultValue="deploy" className="vinput" style={{flex:1,border:"none",background:"transparent",color:fg,fontSize:"9px",outline:"none",padding:0}}/><span style={{fontSize:"7px",color:sub,padding:"1px 4px",border:`1px solid ${bdr}`,borderRadius:"3px",fontFamily:"monospace"}}>ESC</span></div>
+<div style={{padding:"4px",display:"flex",flexDirection:"column",gap:"1px"}}>
+<div style={{fontSize:"6px",fontWeight:700,color:sub,padding:"3px 8px",textTransform:"uppercase",letterSpacing:"0.08em"}}>Actions</div>
+{[["▲","Deploy to Production",true,"⌘D"],["✎","Edit Configuration",false,"⌘E"],["↺","Rollback Last Deploy",false,""]].map(([ic,l,sel,k],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"6px",padding:"4px 8px",borderRadius:"3px",background:sel?bg2:"transparent"}}><span style={{fontSize:"8px",color:sub,width:"10px"}}>{ic}</span><span style={{fontSize:"9px",flex:1}}>{l}</span>{k&&<span style={{fontSize:"6px",color:sub,padding:"1px 4px",border:`1px solid ${bdr}`,borderRadius:"2px",fontFamily:"monospace"}}>{k}</span>}</div>)}
+</div>
+</div>
+</div>
+{/* Modal */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",position:"relative",overflow:"hidden",minHeight:"180px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Modal — type to confirm</div>
+<div style={{position:"absolute",inset:"28px 10px 10px",background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)",borderRadius:"4px",display:"flex",alignItems:"center",justifyContent:"center",padding:"10px"}}>
+<div style={{background:bg,border:`1px solid ${bdr}`,borderRadius:"6px",padding:"10px",boxShadow:"0 8px 40px rgba(0,0,0,0.3)",maxWidth:"220px",width:"100%"}}>
+<div style={{fontSize:"10px",fontWeight:700,marginBottom:"3px"}}>Delete project?</div>
+<div style={{fontSize:"8px",color:sub,marginBottom:"8px"}}>This cannot be undone. Type <span style={{color:fg,fontFamily:"monospace"}}>delete</span> to confirm.</div>
+<input defaultValue="delete" className="vinput" style={{width:"100%",height:"20px",padding:"0 6px",border:`1px solid #EE0000`,borderRadius:"3px",background:"transparent",color:fg,fontSize:"8px",marginBottom:"6px"}}/>
+<div style={{display:"flex",justifyContent:"flex-end",gap:"4px"}}><button className="vbtn" style={{fontSize:"8px",padding:"3px 8px",background:"transparent",color:fg,border:`1px solid ${bdr}`,borderRadius:"3px"}}>Cancel</button><button className="vbtn" style={{fontSize:"8px",padding:"3px 8px",background:"#EE0000",color:"#fff",border:"none",borderRadius:"3px",fontWeight:600}}>Delete</button></div>
+</div>
+</div>
+</div>
+{/* Combobox */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Combobox — searchable</div>
+<div style={{position:"relative"}}>
+<div style={{height:"22px",padding:"0 8px",border:`1px solid #0070F3`,boxShadow:"0 0 0 2px rgba(0,112,243,0.15)",borderRadius:"4px",background:"transparent",fontSize:"9px",color:fg,display:"flex",alignItems:"center",gap:"4px"}}><span>ev</span><span style={{display:"inline-block",width:"1px",height:"11px",background:fg,animation:"pulse 1s ease-in-out infinite"}}/></div>
+<div style={{marginTop:"3px",border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,boxShadow:"0 4px 24px rgba(0,0,0,0.15)",overflow:"hidden"}}>
+{[["evil-rabbit",true],["events-api",false],["evented-logger",false]].map(([n,sel],i)=><div key={i} style={{padding:"4px 8px",fontSize:"9px",background:sel?bg2:"transparent",color:fg}}><mark style={{background:"#F5A62340",color:fg,padding:0}}>ev</mark>{String(n).slice(2)}</div>)}
+</div>
+</div>
+</div>
+{/* Toast */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Toast — stacked with action</div>
+<div style={{display:"flex",flexDirection:"column",gap:"4px",alignItems:"flex-end"}}>
+{[["#17C964","✓","Deployed successfully","Undo"],["#F5A623","⚠","Rate limit near","View"],["#EE0000","!","Build failed",null]].map(([c,ic,m,a],i)=><div key={i} style={{background:bg,border:`1px solid ${bdr}`,borderRadius:"5px",padding:"5px 8px",boxShadow:"0 4px 24px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",gap:"6px",minWidth:"200px"}}><span style={{width:"14px",height:"14px",borderRadius:"9999px",background:c,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"8px",fontWeight:700}}>{ic}</span><span style={{fontSize:"9px",flex:1}}>{m}</span>{a&&<button className="vbtn" style={{fontSize:"8px",color:"#0070F3",background:"none",border:"none",fontWeight:600}}>{a}</button>}</div>)}
+</div>
+</div>
+{/* Calendar */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Calendar — range select</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"5px",padding:"6px",background:bg}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}><span style={{fontSize:"7px",color:sub}}>‹</span><span style={{fontSize:"9px",fontWeight:600}}>April 2025</span><span style={{fontSize:"7px",color:sub}}>›</span></div>
+<div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"1px",textAlign:"center"}}>
+{["S","M","T","W","T","F","S"].map(d=><div key={d} style={{fontSize:"6px",color:sub,padding:"2px 0"}}>{d}</div>)}
+{[...Array(30)].map((_,i)=>{const day=i+1;const inRange=day>=8&&day<=17;const start=day===8;const end=day===17;return<div key={i} style={{fontSize:"7px",padding:"3px 0",borderRadius:start?"3px 0 0 3px":end?"0 3px 3px 0":0,background:inRange?(start||end?"#0070F3":"#0070F320"):"transparent",color:inRange?(start||end?"#fff":fg):fg,fontWeight:start||end?700:400}}>{day}</div>})}
+</div>
+</div>
+</div>
+{/* Context Menu */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Context Menu — grouped + danger</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,padding:"3px",boxShadow:"0 4px 24px rgba(0,0,0,0.15)",width:"fit-content"}}>
+{[["Open","⏎",null,false],["Edit","⌘E",null,false],["Duplicate","⌘D",null,false],[null,null,"div",false],["Share","⌘⇧S",null,false],[null,null,"div",false],["Delete","⌫",null,true]].map(([l,k,div,danger],i)=>div?<div key={i} style={{height:"1px",background:bdr,margin:"3px 0"}}/>:<div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"3px 8px",borderRadius:"2px",gap:"16px"}}><span style={{fontSize:"9px",color:danger?"#EE0000":fg}}>{l}</span><span style={{fontSize:"7px",color:sub,fontFamily:"monospace"}}>{k}</span></div>)}
+</div>
+</div>
+</div>
 <CB title="⌘K Command Menu (simplified)" code={`'use client';
 // For production: use 'cmdk' package (npm install cmdk)
 // This is the pattern — cmdk handles the hard parts
@@ -1668,6 +2044,61 @@ export function InfiniteList() {
 
 {/* ═══ SCAFFOLDS ═══ */}
 {a==="scaffold"&&<div><H2>Page Scaffolds</H2><P>Complete page files + file structure.</P>
+<H3>Preview — Page Layouts</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{/* Marketing */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>Marketing · app/(marketing)/page.tsx</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,padding:"6px"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingBottom:"4px",borderBottom:`1px solid ${b}`}}><span style={{fontSize:"8px",fontWeight:700}}>▲ Logo</span><div style={{display:"flex",gap:"6px"}}><span style={{fontSize:"7px",color:sub}}>Docs</span><span style={{fontSize:"7px",color:sub}}>Pricing</span><span style={{fontSize:"7px",padding:"1px 6px",background:fg,color:bg,borderRadius:"3px"}}>Sign up</span></div></div>
+<div style={{textAlign:"center",padding:"10px 0 8px",borderBottom:`1px solid ${b}`,marginBottom:"4px"}}>
+<div style={{fontSize:"18px",fontWeight:800,letterSpacing:"-0.04em"}}>Ship faster.</div>
+<div style={{fontSize:"8px",color:sub,marginTop:"2px"}}>The fastest way to deploy.</div>
+<div style={{marginTop:"4px",display:"inline-flex",gap:"4px"}}><span style={{fontSize:"7px",padding:"3px 8px",background:fg,color:bg,borderRadius:"3px"}}>Deploy →</span><span style={{fontSize:"7px",padding:"3px 8px",background:"transparent",color:fg,border:`1px solid ${bdr}`,borderRadius:"3px"}}>Docs</span></div>
+</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"3px"}}>{[0,1,2].map(i=><div key={i} style={{padding:"5px",background:bg2,borderRadius:"3px"}}><div style={{height:"4px",width:"50%",background:fg,borderRadius:"1px",marginBottom:"2px"}}/><div style={{height:"3px",width:"80%",background:bdr,borderRadius:"1px"}}/></div>)}</div>
+</div>
+</div>
+{/* Dashboard */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>Dashboard · app/(app)/page.tsx</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,display:"flex",overflow:"hidden",height:"110px"}}>
+<div style={{width:"30%",borderRight:`1px solid ${b}`,padding:"4px",display:"flex",flexDirection:"column",gap:"2px"}}>
+<div style={{display:"flex",alignItems:"center",gap:"3px",paddingBottom:"3px",borderBottom:`1px solid ${b}`}}><div style={{width:"8px",height:"8px",borderRadius:"2px",background:"linear-gradient(135deg,#0070F3,#7928CA)"}}/><span style={{fontSize:"7px",fontWeight:600}}>Acme</span></div>
+{["Overview","Projects","Analytics","Team","Settings"].map((l,i)=><div key={i} style={{padding:"2px 4px",borderRadius:"2px",background:i===0?bg2:"transparent"}}><span style={{fontSize:"7px",color:i===0?fg:sub}}>{l}</span></div>)}
+</div>
+<div style={{flex:1,padding:"6px"}}>
+<div style={{display:"flex",justifyContent:"space-between",paddingBottom:"4px",borderBottom:`1px solid ${b}`,marginBottom:"4px"}}><span style={{fontSize:"9px",fontWeight:700}}>Overview</span><span style={{fontSize:"7px",color:sub}}>⌘K</span></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"3px",marginBottom:"4px"}}>{[["Projects","12"],["Builds","247"]].map(([l,v],i)=><div key={i} style={{padding:"3px",background:bg2,borderRadius:"2px",border:`1px solid ${b}`}}><div style={{fontSize:"5px",color:sub}}>{l}</div><div style={{fontSize:"9px",fontWeight:700}}>{v}</div></div>)}</div>
+<div style={{fontSize:"6px",color:sub,fontFamily:"monospace"}}>Table / Chart / Feed</div>
+</div>
+</div>
+</div>
+{/* Auth */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>Auth · app/(auth)/login/page.tsx</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,padding:"14px 16px",display:"flex",flexDirection:"column",alignItems:"center",gap:"4px",height:"110px",justifyContent:"center"}}>
+<div style={{fontSize:"13px",fontWeight:800,letterSpacing:"-0.02em"}}>Sign in</div>
+<div style={{fontSize:"7px",color:sub}}>Use your email to continue.</div>
+<input placeholder="you@example.com" className="vinput" style={{width:"70%",height:"18px",padding:"0 6px",border:`1px solid ${bdr}`,borderRadius:"3px",background:"transparent",color:fg,fontSize:"8px"}}/>
+<button className="vbtn" style={{width:"70%",height:"18px",background:fg,color:bg,border:"none",borderRadius:"3px",fontSize:"8px",fontWeight:600}}>Continue with Email</button>
+<div style={{fontSize:"6px",color:sub}}>or GitHub / Google</div>
+</div>
+</div>
+{/* Settings */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>Settings · app/(app)/settings/page.tsx</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,padding:"6px",display:"flex",flexDirection:"column",gap:"4px",height:"110px"}}>
+<div style={{display:"flex",gap:"4px",paddingBottom:"4px",borderBottom:`1px solid ${b}`}}>{["General","Members","Billing","Tokens"].map((l,i)=><span key={i} style={{fontSize:"7px",padding:"2px 0",borderBottom:i===0?`1.5px solid #0070F3`:"none",color:i===0?fg:sub,fontWeight:i===0?600:400}}>{l}</span>)}</div>
+<div style={{border:`1px solid ${b}`,borderRadius:"3px",padding:"5px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontSize:"8px",fontWeight:600}}>Project Name</div><div style={{fontSize:"6px",color:sub}}>Used in URLs</div></div><div style={{height:"16px",width:"90px",border:`1px solid ${bdr}`,borderRadius:"3px",padding:"0 4px",display:"flex",alignItems:"center",fontSize:"7px",color:sub}}>my-project</div></div>
+<div style={{border:`1px solid ${b}`,borderRadius:"3px",padding:"5px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontSize:"8px",fontWeight:600,color:"#EE0000"}}>Delete Project</div><div style={{fontSize:"6px",color:sub}}>This action is irreversible</div></div><button className="vbtn" style={{fontSize:"7px",padding:"3px 6px",background:"#EE0000",color:"#fff",border:"none",borderRadius:"3px",fontWeight:600}}>Delete</button></div>
+</div>
+</div>
+</div>
+<H3>File Tree</H3>
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",marginBottom:"14px",background:bg2,fontFamily:"monospace",fontSize:"9px",color:fg}}>
+{["app/","├── (marketing)/","│   ├── layout.tsx","│   ├── page.tsx","│   └── pricing/page.tsx","├── (app)/","│   ├── layout.tsx","│   ├── page.tsx","│   └── settings/page.tsx","├── (auth)/","│   ├── login/page.tsx","│   └── signup/page.tsx","├── api/","├── globals.css","└── layout.tsx"].map((l,i)=><div key={i} style={{lineHeight:1.4,color:l.startsWith("│")||l.startsWith("├")||l.startsWith("└")?sub:fg}}>{l}</div>)}
+</div>
 <CB title="app/(marketing)/page.tsx" code={`export default function Landing() {
   return (<>
     <section className="py-32 px-6 text-center">
@@ -1896,56 +2327,7 @@ lib/             ← cn.ts, theme-provider.tsx, toast setup, focus-trap.ts`}/>
 
 {/* ═══ COMPONENT PICKER ═══ */}
 {a==="decide"&&<div><H2>Component Picker</H2><P>"I need to..." → use this component. Search or scroll. Geist has 55 components — this covers the most-used ones.</P>
-{(()=>{const[q,sq]=useState("");const items=[
-["Show a deployment/build status","StatusDot","5 states: queued(gray) · building(amber+pulse) · ready(green) · error(red) · canceled(gray). Always pair with text label."],
-["Show loading placeholder while fetching","Skeleton","Must mirror final layout shape exactly. Use animate-pulse. Variants: fixed-size, wrapping children, pill, rounded, squared, no-animation."],
-["Confirm a destructive/irreversible action","Modal","Centered dialog with backdrop blur. Focus trap + Esc close + scroll lock. Type-to-confirm for deletes. Use error variant on confirm button."],
-["Show a detail/filter panel from the side","Sheet / Drawer","Sheet: side panel from any edge (top/right/bottom/left via side prop), any viewport. Drawer: mobile-only bottom sheet with drag handle + custom height. Use Sheet for desktop detail panels, Drawer for mobile modals."],
-["Label, categorize, or tag something","Badge / Pill","Badge: 8 colors (gray/blue/purple/amber/red/pink/green/teal) × solid+subtle + inverted. 3 sizes. Pill: link component based on Badge styling — rounded-full, for clickable tags."],
-["Collect qualitative user feedback","Feedback","5 emoji emotion selector + optional textarea. Desktop = popover anchored to trigger. Mobile = inline below trigger."],
-["Show a transient notification","Toast","Auto-dismisses after ~5s. 4 types: default, success, warning, error. Optional action button ('Undo', 'View'). Use sonner library. Position: bottom-right."],
-["Show a persistent inline message","Note","12 types (default/secondary/tertiary/success/warning/error/alert/lite/ghost/violet/cyan) × outlined+filled. Action button. Label. 3 sizes."],
-["Show an empty/zero-data state","Empty State","Centered: icon + title + description + CTA button. 4 patterns: blank-slate, informational, educational, guide."],
-["Collect a single line of text","Input","h-10, 1px border, blue focus ring. Slots: prefix icon, suffix icon/button. Variants: default, search, error."],
-["Collect multiple lines of text","Textarea","Same border/focus as Input. ⌘+Enter submits (in forms). Auto-resize optional. Character count optional."],
-["Pick one option from a list","Select / Combobox","Select: static dropdown, good for <10 items. Combobox: searchable/filterable, good for 10+ items. Both use menu material shadow."],
-["Pick multiple options","Multi Select","Chip-based display. Search to filter. Click chip × to remove. Use for: tags, categories, permissions."],
-["Toggle a boolean on/off","Switch","role=switch, aria-checked. Space to toggle. Use for instant-apply settings (not inside forms that have a Save button)."],
-["Choose from a few exclusive options","Radio / Choicebox","Radio: 2-5 text options, vertical stack. Choicebox: rich cards with title+description, good for plan selection."],
-["Check/uncheck an option","Checkbox","Square check. Can be standalone or in a group. Use inside forms (not for instant-apply — use Switch for that)."],
-["Navigate between sibling views","Tabs","Underline indicator with transition. Arrow key navigation. Keep all tab panels mounted. Badge counts optional."],
-["Show expandable content sections","Collapse","Animated height transition. Single-open or multi-open mode. Use for: FAQ, settings groups, advanced options."],
-["Pick a date or date range","Calendar","Month grid popup. Single date or range selection. Min/max constraints. Disabled dates. Full keyboard navigation."],
-["Copy a code snippet to clipboard","Snippet","Dark terminal-style background. Copy button in header. Multi-line support. Optional: no prompt, custom width, filename."],
-["Show a right-click or dropdown menu","Context Menu / Menu","material-menu shadow. Grouped items with separators. Keyboard shortcuts right-aligned. Destructive items in red."],
-["Show help text on hover","Tooltip","200ms show delay. 6px radius. Max width 200px. Has stem/arrow. role=tooltip + aria-describedby. Esc to dismiss."],
-["Show a progress bar","Progress","Horizontal bar. Variants: default, dynamic colors (changes at thresholds), themed, with stops (markers)."],
-["Show a score or quota gauge","Gauge","Arc (semicircle) or linear. Color thresholds. Label inside. Use for: storage quota, build score, performance."],
-["Display rows of structured data","Table","1px border container. Sticky header. Hover bg on rows. Sort indicators. Pair with Pagination in card footer."],
-["Quick-search everything (power user)","Command Menu","⌘K trigger. Full-screen search + categorized results + keyboard shortcuts. Use cmdk library. Nested pages."],
-["Show an indeterminate loading state","Spinner","border-2 border-t-foreground rounded-full animate-spin. Use inside buttons during async actions. 16-20px size."],
-["Show loading in inline text","Loading Dots","3 dots with staggered bounce animation. Use in: button loading, chat typing indicator, inline status text."],
-["Show a user's identity","Avatar","Image with fallback to initials. Group variant: stacked circles with +N overflow. Sizes: sm(24)/md(32)/lg(40)."],
-["Navigate back up a page hierarchy","Breadcrumbs","Slash-separated links. Last segment is plain text (current page). Use in dashboard topbar, never in marketing."],
-["Display formatted code with highlighting","Code Block","Syntax-highlighted. Copy button. Line numbers optional. Filename header. Dark bg always."],
-["Show a keyboard shortcut hint","Keyboard Input","Small bordered inline element. Use for: ⌘K, ⌘S, Esc. Pairs with menu items and tooltips."],
-["Page through a large list","Pagination","Previous/Next buttons + page numbers. Show '1-10 of 47'. Place in card footer below table."],
-["Show a project or entity card","Entity","Avatar + name + description + metadata row. Clickable. Use in lists of projects, teams, members."],
-["Switch between light/dark/system theme","Theme Switcher","3-segment toggle or dropdown. Persists preference. Uses next-themes under the hood."],
-["Show a preview of a web page","Browser","Chrome-like frame with URL bar + dots. Use to showcase websites, demos, screenshots inside a realistic frame."],
-["Select a value from a range","Slider","Horizontal track + thumb. Supports min/max/step. Use for: opacity, volume, price range filters."],
-["Offer a primary action with dropdown","Split Button","Primary button + dropdown chevron for secondary actions. Use for: Deploy (+ Rollback, Promote, etc)."],
-["Toggle between grouped options","Toggle","Segmented control (button group). Use for: view mode (grid/list), time range (day/week/month). NOT a Switch."],
-["Show a horizontally scrollable area","Scroller","Overflow container with fade edges + optional scroll arrows. Use for: tab overflow, card carousels."],
-["Reveal more content in a list","Show More","'Show N more' button that reveals hidden items. Use for: long comment threads, truncated lists."],
-["Display a label + value pair","Description","Key-value display. Horizontal or stacked. Use in: settings panels, detail views, metadata sections."],
-["Show a phone number input","Phone","Country code dropdown + number input. Validates international formats. Flag icons for country selector."],
-["Show a hoverable info card on an entity","Context Card","Popover card that appears on hover. Shows preview of linked entity. Use for: user cards, project previews."],
-["Show a relative timestamp","Relative Time Card","'2 minutes ago' with hover to show full date. Auto-updates. Use in: activity feeds, deployment lists."],
-["Show a project deployment banner","Project Banner","Horizontal banner at top of project page. Shows deploy status, branch, commit message. Dismissible."],
-];
-const f=items.filter(([n,c,dd])=>{const s=q.toLowerCase();return n.toLowerCase().includes(s)||c.toLowerCase().includes(s)||dd.toLowerCase().includes(s)});
-return<div><input className="vinput" value={q} onChange={e=>sq(e.target.value)} placeholder='Search: "loading", "feedback", "table", "delete"...' style={{width:"100%",height:"32px",padding:"0 10px",border:`1px solid ${bdr}`,borderRadius:"6px",background:"transparent",color:fg,fontSize:"11px",marginBottom:"10px"}}/><div style={{display:"flex",flexDirection:"column",gap:"2px"}}>{f.map(([n,c,dd],i)=><div key={i} style={{display:"grid",gridTemplateColumns:"220px 110px 1fr",gap:"6px",padding:"5px 8px",border:`1px solid ${b}`,borderRadius:"4px",alignItems:"start"}}><div style={{fontSize:"9.5px"}}>{n}</div><div style={{fontSize:"9.5px",fontWeight:700,color:"#0070F3"}}>{c}</div><div style={{fontSize:"8px",color:sub,lineHeight:1.4}}>{dd}</div></div>)}</div><div style={{fontSize:"9px",color:sub,marginTop:"8px"}}>{f.length} of {items.length} components shown</div></div>})()}
+<DecidePicker bdr={bdr} fg={fg} sub={sub} b={b}/>
 </div>}
 
 {/* ═══ SPACING ═══ */}
@@ -2012,6 +2394,65 @@ ICONS  in buttons: w-4 h-4  standalone: w-5 h-5  icon→text gap: gap-2 (8px)`}/
 
 {/* ═══ COMPOSITIONS ═══ */}
 {a==="compose"&&<div><H2>Compositions</H2><P>How components nest in real UI. 6 common patterns with code.</P>
+<H3>Preview — 6 Composition Patterns</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{/* 1. Table in Card */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>1. Table in Card</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,overflow:"hidden"}}>
+<div style={{padding:"5px 8px",borderBottom:`1px solid ${b}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:"9px",fontWeight:600}}>Deployments</span><button style={{fontSize:"7px",padding:"2px 6px",background:fg,color:bg,border:"none",borderRadius:"3px"}}>+ New</button></div>
+{[["evil-rabbit","ready"],["marketing","building"],["api-gateway","error"]].map(([n,s],i)=><div key={i} style={{padding:"4px 8px",borderBottom:i<2?`1px solid ${b}`:"none",display:"grid",gridTemplateColumns:"1fr auto",gap:"6px",alignItems:"center"}}><span style={{fontSize:"8px"}}>{n}</span><span style={{fontSize:"7px",padding:"1px 5px",borderRadius:"9999px",background:s==="ready"?"#17C96420":s==="building"?"#F5A62320":"#EE000020",color:s==="ready"?"#17C964":s==="building"?"#F5A623":"#EE0000",fontWeight:600}}>{s}</span></div>)}
+<div style={{padding:"4px 8px",borderTop:`1px solid ${b}`,background:bg2,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:"7px",color:sub}}>1–3 of 12</span><div style={{display:"flex",gap:"2px"}}><span style={{fontSize:"7px",padding:"1px 4px",border:`1px solid ${bdr}`,borderRadius:"2px",color:sub}}>‹</span><span style={{fontSize:"7px",padding:"1px 4px",border:`1px solid ${bdr}`,borderRadius:"2px",color:sub}}>›</span></div></div>
+</div>
+</div>
+{/* 2. Form in Card with Footer */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>2. Form in Card + Footer Action</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg}}>
+<div style={{padding:"8px"}}><div style={{fontSize:"9px",fontWeight:600,marginBottom:"2px"}}>Environment Variables</div><div style={{fontSize:"7px",color:sub,marginBottom:"6px"}}>One per line, KEY=value format.</div><div style={{height:"40px",border:`1px solid ${bdr}`,borderRadius:"3px",padding:"3px 6px",fontSize:"7px",color:sub,fontFamily:"monospace"}}>NODE_ENV=production<br/>API_KEY=sk_live_***</div></div>
+<div style={{padding:"4px 8px",borderTop:`1px solid ${b}`,background:bg2,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:"7px",color:sub}}>Changes apply on next deploy</span><button style={{fontSize:"7px",padding:"2px 6px",background:fg,color:bg,border:"none",borderRadius:"3px",fontWeight:600}}>Save</button></div>
+</div>
+</div>
+{/* 3. Tabs in Card */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>3. Tabs in Card</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,overflow:"hidden"}}>
+<div style={{display:"flex",borderBottom:`1px solid ${b}`}}>{["Overview","Logs","Settings"].map((l,i)=><span key={l} style={{fontSize:"7px",padding:"5px 10px",borderBottom:i===1?`1.5px solid #0070F3`:"none",color:i===1?fg:sub,fontWeight:i===1?600:400}}>{l}</span>)}</div>
+<div style={{padding:"8px",fontFamily:"monospace",fontSize:"7px",color:sub}}>
+<div>[12:04:21] ✓ Build started</div>
+<div>[12:04:35] ✓ Dependencies installed</div>
+<div>[12:05:02] ✓ Next.js compiled</div>
+<div>[12:05:18] <span style={{color:"#17C964"}}>● Deployed to production</span></div>
+</div>
+</div>
+</div>
+{/* 4. Avatar Group + Meta */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>4. Entity Row + Avatar Group</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,padding:"6px 8px",display:"flex",alignItems:"center",gap:"8px"}}>
+<div style={{width:"22px",height:"22px",borderRadius:"5px",background:"linear-gradient(135deg,#0070F3,#7928CA)",flexShrink:0}}/>
+<div style={{flex:1,minWidth:0}}><div style={{fontSize:"9px",fontWeight:600}}>Acme Inc</div><div style={{fontSize:"7px",color:sub}}>12 projects · 7 members</div></div>
+<div style={{display:"flex"}}>{["#0070F3","#7928CA","#F5A623"].map((c,i)=><div key={i} style={{width:"14px",height:"14px",borderRadius:"9999px",background:c,border:`1.5px solid ${bg}`,marginLeft:i===0?0:"-4px"}}/>)}</div>
+<button style={{fontSize:"7px",padding:"2px 6px",background:"transparent",color:fg,border:`1px solid ${bdr}`,borderRadius:"3px"}}>Open →</button>
+</div>
+</div>
+{/* 5. Dropdown in Header */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>5. Dropdown in App Header</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg}}>
+<div style={{padding:"4px 6px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${b}`}}><div style={{display:"flex",alignItems:"center",gap:"4px"}}><span style={{fontSize:"8px",fontWeight:600}}>▲ acme /</span><span style={{fontSize:"8px",padding:"1px 4px",background:bg2,border:`1px solid ${bdr}`,borderRadius:"3px"}}>evil-rabbit ▾</span></div><div style={{width:"14px",height:"14px",borderRadius:"9999px",background:"#0070F3"}}/></div>
+<div style={{padding:"4px",borderTop:`1px solid ${b}`,boxShadow:"0 4px 24px rgba(0,0,0,0.1)",margin:"2px"}}><div style={{fontSize:"6px",fontWeight:700,color:sub,padding:"2px 6px",textTransform:"uppercase"}}>Switch Project</div>{["evil-rabbit","marketing","api-gateway"].map((n,i)=><div key={i} style={{padding:"2px 6px",fontSize:"8px",borderRadius:"2px",background:i===0?bg2:"transparent"}}>{n}{i===0&&" ✓"}</div>)}</div>
+</div>
+</div>
+{/* 6. Filter + Table + Pagination */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"8px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"6px",letterSpacing:"0.06em"}}>6. Search + Filter + Results</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"4px",background:bg,overflow:"hidden"}}>
+<div style={{padding:"4px 6px",borderBottom:`1px solid ${b}`,display:"flex",gap:"3px",alignItems:"center"}}><div style={{flex:1,height:"16px",border:`1px solid ${bdr}`,borderRadius:"3px",padding:"0 4px",display:"flex",alignItems:"center",fontSize:"7px",color:sub}}>⌕ Search...</div><span style={{fontSize:"6px",padding:"2px 5px",background:"#0070F320",color:"#0070F3",borderRadius:"9999px",fontWeight:600}}>Status: ready</span></div>
+{[0,1,2].map(i=><div key={i} style={{padding:"4px 6px",borderBottom:i<2?`1px solid ${b}`:"none",display:"flex",alignItems:"center",gap:"4px"}}><span style={{width:"4px",height:"4px",borderRadius:"9999px",background:"#17C964"}}/><span style={{fontSize:"8px",flex:1}}>project-{i+1}</span><span style={{fontSize:"6px",color:sub}}>{i+1}h ago</span></div>)}
+</div>
+</div>
+</div>
 <CB title="1. Table in Card (most common dashboard pattern)" code={`<div className="rounded-lg border overflow-hidden">
   <div className="px-5 py-3 border-b flex justify-between items-center">
     <h2 className="text-sm font-semibold">Projects</h2>
@@ -2195,6 +2636,18 @@ ICONS  in buttons: w-4 h-4  standalone: w-5 h-5  icon→text gap: gap-2 (8px)`}/
 
 {/* ═══ DARK MODE ═══ */}
 {a==="darkmode"&&<div><H2>Dark Mode</H2><P>Step-by-step implementation with actual code for every fix.</P>
+<H3>Preview — Side-by-side Light/Dark</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{[["LIGHT","#fff","#000","#fafafa","rgba(0,0,0,0.08)","#737373","#f5f5f5"],["DARK","#000","#EDEDED","#0A0A0A","rgba(255,255,255,0.08)","#737373","#1A1A1A"]].map(([l,bgc,fgc,bg2c,bdrC,subC,skC],i)=><div key={i} style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px",background:bgc}}>
+<div style={{fontSize:"8px",fontWeight:700,color:subC,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>{l}</div>
+<div style={{background:bg2c,border:`1px solid ${bdrC}`,borderRadius:"6px",padding:"8px",color:fgc,display:"flex",flexDirection:"column",gap:"6px"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:"11px",fontWeight:700}}>Dashboard</span><span style={{fontSize:"8px",color:subC}}>⌘K</span></div>
+<div style={{fontSize:"8px",color:subC}}>Manage your deployments and settings</div>
+<div style={{padding:"6px",background:bgc,border:`1px solid ${bdrC}`,borderRadius:"4px"}}><div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontSize:"8px",fontWeight:600}}>evil-rabbit</span><span style={{fontSize:"7px",padding:"1px 4px",background:"#17C96420",color:"#17C964",borderRadius:"9999px",fontWeight:600}}>ready</span></div><div style={{fontSize:"7px",color:subC,marginTop:"2px"}}>Deployed 2m ago · 3f2a1b</div></div>
+<button style={{fontSize:"8px",padding:"4px 10px",background:fgc,color:bgc,border:"none",borderRadius:"4px",fontWeight:500,alignSelf:"flex-start"}}>Deploy →</button>
+</div>
+</div>)}
+</div>
 <H3>Setup (3 files)</H3>
 <CB title="1. globals.css" code={`:root {
   color-scheme: light;
@@ -2286,6 +2739,32 @@ PROBLEM: Code blocks become "double dark" (dark code on dark page)
 
 {/* ═══ DATA STATES ═══ */}
 {a==="states"&&<div><H2>Data States</H2><P>Every data-fetching view needs 4 states designed. Here are templates for 3 common view types.</P>
+<H3>Preview — 4 States × 3 View Types</H3>
+<div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"14px"}}>
+{[
+["Card Grid",[
+  ["Loading",<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"4px"}}>{[0,1,2].map(i=><div key={i} style={{padding:"6px",border:`1px solid ${b}`,borderRadius:"4px",background:bg}}><div style={{height:"24px",background:skBg,borderRadius:"3px",marginBottom:"4px",animation:"pulse 2s ease-in-out infinite"}}/><div style={{height:"5px",width:"60%",background:skBg,borderRadius:"2px",marginBottom:"3px",animation:"pulse 2s ease-in-out infinite"}}/><div style={{height:"4px",width:"80%",background:skBg,borderRadius:"2px",animation:"pulse 2s ease-in-out infinite"}}/></div>)}</div>],
+  ["Loaded",<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"4px"}}>{["evil-rabbit","marketing","api-gw"].map((n,i)=><div key={n} style={{padding:"6px",border:`1px solid ${b}`,borderRadius:"4px",background:bg}}><div style={{height:"24px",background:`linear-gradient(135deg,${["#0070F3","#7928CA","#17C964"][i]}40,${["#7928CA","#F5A623","#06B6D4"][i]}20)`,borderRadius:"3px",marginBottom:"4px"}}/><div style={{fontSize:"8px",fontWeight:600}}>{n}</div><div style={{fontSize:"6px",color:sub,marginTop:"1px"}}>ready · 2m ago</div></div>)}</div>],
+  ["Empty",<div style={{border:`1px dashed ${bdr}`,borderRadius:"4px",padding:"14px",textAlign:"center",background:bg}}><div style={{fontSize:"16px",color:sub,marginBottom:"2px"}}>◇</div><div style={{fontSize:"9px",fontWeight:600}}>No projects yet</div><div style={{fontSize:"7px",color:sub,marginTop:"2px",marginBottom:"4px"}}>Import from Git to get started</div><button style={{fontSize:"7px",padding:"3px 8px",background:fg,color:bg,border:"none",borderRadius:"3px",fontWeight:600}}>Import Project</button></div>],
+  ["Error",<div style={{border:`1px solid #EE000030`,background:"#EE000010",borderRadius:"4px",padding:"14px",textAlign:"center"}}><div style={{fontSize:"14px",color:"#EE0000",marginBottom:"2px"}}>⚠</div><div style={{fontSize:"9px",fontWeight:600,color:"#EE0000"}}>Failed to load</div><div style={{fontSize:"7px",color:sub,marginTop:"2px",marginBottom:"4px"}}>Network error. Try again.</div><button style={{fontSize:"7px",padding:"3px 8px",background:"transparent",color:fg,border:`1px solid ${bdr}`,borderRadius:"3px"}}>Retry</button></div>]
+]],
+["Table",[
+  ["Loading",<div style={{border:`1px solid ${b}`,borderRadius:"4px",overflow:"hidden"}}>{[0,1,2,3].map(i=><div key={i} style={{padding:"6px 8px",borderBottom:i<3?`1px solid ${b}`:"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:"6px"}}><div style={{height:"5px",background:skBg,borderRadius:"2px",animation:"pulse 2s ease-in-out infinite"}}/><div style={{height:"5px",background:skBg,borderRadius:"2px",animation:"pulse 2s ease-in-out infinite"}}/><div style={{height:"5px",background:skBg,borderRadius:"2px",animation:"pulse 2s ease-in-out infinite"}}/></div>)}</div>],
+  ["Loaded",<div style={{border:`1px solid ${b}`,borderRadius:"4px",overflow:"hidden"}}>{[["evil-rabbit","#17C964","ready"],["marketing","#F5A623","build"],["dashboard","#17C964","ready"],["api-gw","#EE0000","error"]].map(([n,c,s],i)=><div key={i} style={{padding:"4px 8px",borderBottom:i<3?`1px solid ${b}`:"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:"6px",alignItems:"center"}}><span style={{fontSize:"8px"}}>{n}</span><div style={{display:"flex",alignItems:"center",gap:"3px"}}><span style={{width:"4px",height:"4px",borderRadius:"9999px",background:c}}/><span style={{fontSize:"7px",color:sub}}>{s}</span></div><span style={{fontSize:"7px",color:sub}}>{i+1}m ago</span></div>)}</div>],
+  ["Empty",<div style={{border:`1px dashed ${bdr}`,borderRadius:"4px",padding:"16px",textAlign:"center"}}><div style={{fontSize:"14px",color:sub}}>≡</div><div style={{fontSize:"9px",fontWeight:600,marginTop:"2px"}}>No rows</div><div style={{fontSize:"7px",color:sub,marginTop:"2px"}}>Matches your filter</div></div>],
+  ["Error",<div style={{border:`1px solid #EE000030`,background:"#EE000010",borderRadius:"4px",padding:"16px",textAlign:"center"}}><div style={{fontSize:"9px",fontWeight:600,color:"#EE0000"}}>Can't reach API</div><div style={{fontSize:"7px",color:sub,marginTop:"2px"}}>Status 503</div></div>]
+]],
+["Detail Page",[
+  ["Loading",<div style={{padding:"8px",border:`1px solid ${b}`,borderRadius:"4px"}}><div style={{height:"8px",width:"40%",background:skBg,borderRadius:"2px",marginBottom:"4px",animation:"pulse 2s ease-in-out infinite"}}/><div style={{height:"5px",width:"60%",background:skBg,borderRadius:"2px",marginBottom:"10px",animation:"pulse 2s ease-in-out infinite"}}/><div style={{height:"32px",background:skBg,borderRadius:"3px",animation:"pulse 2s ease-in-out infinite"}}/></div>],
+  ["Loaded",<div style={{padding:"8px",border:`1px solid ${b}`,borderRadius:"4px"}}><div style={{fontSize:"12px",fontWeight:700}}>evil-rabbit</div><div style={{fontSize:"7px",color:sub,marginBottom:"6px"}}>github.com/acme/evil-rabbit</div><div style={{padding:"6px",background:bg2,border:`1px solid ${b}`,borderRadius:"3px",fontSize:"7px",color:sub,fontFamily:"monospace"}}>$ vercel deploy --prod<br/>✓ Deployed in 3.2s</div></div>],
+  ["Empty / Not Found",<div style={{border:`1px dashed ${bdr}`,borderRadius:"4px",padding:"16px",textAlign:"center"}}><div style={{fontSize:"9px",fontWeight:600}}>Project not found</div><div style={{fontSize:"7px",color:sub,marginTop:"2px",marginBottom:"4px"}}>It may have been deleted</div><span style={{fontSize:"7px",color:"#0070F3"}}>← Back to projects</span></div>],
+  ["Error",<div style={{border:`1px solid #EE000030`,background:"#EE000010",borderRadius:"4px",padding:"16px",textAlign:"center"}}><div style={{fontSize:"9px",fontWeight:600,color:"#EE0000"}}>Build failed</div><div style={{fontSize:"7px",color:sub,marginTop:"2px",marginBottom:"4px"}}>Module not found: 'react-dom'</div><button style={{fontSize:"7px",padding:"2px 6px",background:"#EE0000",color:"#fff",border:"none",borderRadius:"3px"}}>View logs</button></div>]
+]]
+].map(([viewType,states],i)=><div key={i}>
+<div style={{fontSize:"9px",fontWeight:700,marginBottom:"4px"}}>{viewType}</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:"4px"}}>{states.map(([stateName,content],j)=><div key={j}><div style={{fontSize:"7px",fontWeight:700,color:sub,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"3px"}}>{stateName}</div><div>{content}</div></div>)}</div>
+</div>)}
+</div>
 <H3>Pattern: Card Grid View</H3>
 <CB title="card-grid-states.tsx" code={`function ProjectGrid() {
   const { data, isLoading, error } = useProjects();
@@ -2441,6 +2920,42 @@ PROBLEM: Code blocks become "double dark" (dark code on dark page)
 
 {/* ═══ ANTI-PATTERNS ═══ */}
 {a==="anti"&&<div><H2>Anti-Patterns</H2><P>Fix these during migration. Each has the wrong version and the correct replacement.</P>
+<H3>Preview — Wrong vs Right</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{[
+["Card Shadow",
+  <div style={{background:bg,padding:"8px 12px",borderRadius:"6px",boxShadow:"0 4px 6px rgba(0,0,0,0.1)",minWidth:"100px"}}><div style={{fontSize:"9px",fontWeight:600,color:fg}}>Card</div><div style={{fontSize:"7px",color:sub}}>With shadow-md</div></div>,
+  <div style={{background:bg,padding:"8px 12px",borderRadius:"6px",border:`1px solid ${bdr}`,minWidth:"100px"}}><div style={{fontSize:"9px",fontWeight:600,color:fg}}>Card</div><div style={{fontSize:"7px",color:sub}}>With 1px border</div></div>],
+["Status — color only",
+  <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{width:"8px",height:"8px",borderRadius:"9999px",background:"#17C964"}}/><span style={{fontSize:"9px",color:"#17C964"}}>—</span></div>,
+  <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{width:"8px",height:"8px",borderRadius:"9999px",background:"#17C964"}}/><span style={{fontSize:"9px",color:fg}}>Ready</span></div>],
+["Button — colored primary",
+  <button style={{background:"#3B82F6",color:"#fff",padding:"6px 14px",border:"none",borderRadius:"6px",fontSize:"9px",fontWeight:600}}>Save</button>,
+  <button style={{background:fg,color:bg,padding:"6px 14px",border:"none",borderRadius:"6px",fontSize:"9px",fontWeight:500}}>Save</button>],
+["Heading — colored",
+  <h3 style={{fontSize:"14px",fontWeight:700,color:"#0070F3",margin:0,letterSpacing:"-0.02em"}}>Your Projects</h3>,
+  <h3 style={{fontSize:"14px",fontWeight:700,color:fg,margin:0,letterSpacing:"-0.02em"}}>Your Projects</h3>],
+["Border — thick",
+  <div style={{padding:"6px 10px",border:`2px solid ${fg}`,borderRadius:"4px",fontSize:"9px",color:fg,minWidth:"100px"}}>Emphasized box</div>,
+  <div style={{padding:"6px 10px",border:`1px solid ${bdr}`,borderRadius:"4px",fontSize:"9px",color:fg,minWidth:"100px",background:bg2}}>Emphasized box</div>],
+["Focus — default browser",
+  <button style={{background:"transparent",color:fg,padding:"6px 12px",border:`1px solid ${bdr}`,borderRadius:"4px",fontSize:"9px",outline:"2px solid #000"}}>Tab-focused</button>,
+  <button style={{background:"transparent",color:fg,padding:"6px 12px",border:`1px solid #0070F3`,boxShadow:"0 0 0 2px rgba(0,112,243,0.15)",borderRadius:"4px",fontSize:"9px",outline:"none"}}>Tab-focused</button>],
+["Disabled — gray text",
+  <button style={{background:"#D1D5DB",color:"#9CA3AF",padding:"6px 14px",border:"none",borderRadius:"4px",fontSize:"9px"}}>Disabled</button>,
+  <button style={{background:fg,color:bg,padding:"6px 14px",border:"none",borderRadius:"6px",fontSize:"9px",opacity:0.4,pointerEvents:"none"}}>Disabled</button>],
+["Radius — pill everything",
+  <button style={{background:fg,color:bg,padding:"4px 14px",border:"none",borderRadius:"9999px",fontSize:"9px"}}>Save</button>,
+  <button style={{background:fg,color:bg,padding:"4px 14px",border:"none",borderRadius:"6px",fontSize:"9px"}}>Save</button>]
+].map(([label,wrong,right],i)=><div key={i} style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>{label}</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px"}}>
+<div style={{padding:"10px 8px",background:"#EE000010",border:`1px solid #EE000025`,borderRadius:"4px",display:"flex",flexDirection:"column",alignItems:"center",gap:"4px"}}><span style={{fontSize:"6px",fontWeight:700,color:"#EE0000",letterSpacing:"0.08em"}}>✕ WRONG</span>{wrong}</div>
+<div style={{padding:"10px 8px",background:"#17C96410",border:`1px solid #17C96425`,borderRadius:"4px",display:"flex",flexDirection:"column",alignItems:"center",gap:"4px"}}><span style={{fontSize:"6px",fontWeight:700,color:"#17C964",letterSpacing:"0.08em"}}>✓ RIGHT</span>{right}</div>
+</div>
+</div>)}
+</div>
+<H3>Anti-Pattern Reference</H3>
 <div style={{display:"flex",flexDirection:"column",gap:"4px"}}>{[
 ["❌ Box shadows on cards → Use 1px border","Cards NEVER have box-shadow. Only menus, modals, tooltips get shadows. If your card has shadow-md, replace with border border-[var(--border)]."],
 ["❌ bg-blue-500 buttons → Use bg-foreground","Primary button is black (light) / white (dark). NOT blue. Blue is for links and focus rings only. <button className='bg-foreground text-background'>"],
@@ -2585,39 +3100,39 @@ PROBLEM: Code blocks become "double dark" (dark code on dark page)
 <H3>Button Types × Sizes (Geist shows 5 types × 3 sizes)</H3>
 <div style={{display:"grid",gridTemplateColumns:"60px 1fr 1fr 1fr",gap:"4px",alignItems:"center",marginBottom:"14px"}}>
 <div/>{["Small (32px)","Medium (40px)","Large (48px)"].map(s=><div key={s} style={{fontSize:"8px",color:sub,textAlign:"center"}}>{s}</div>)}
-{[["Primary",{bg:fg,c:bg,brd:"none"}],["Secondary",{bg:"transparent",c:fg,brd:`1px solid ${bdr}`}],["Tertiary",{bg:bg2,c:fg,brd:"none"}],["Error",{bg:"#EE0000",c:"#fff",brd:"none"}],["Warning",{bg:"#F5A623",c:"#fff",brd:"none"}]].map(([n,s])=><>
+{[["Primary",{bg:fg,c:bg,brd:"none"}],["Secondary",{bg:"transparent",c:fg,brd:`1px solid ${bdr}`}],["Tertiary",{bg:bg2,c:fg,brd:"none"}],["Error",{bg:"#EE0000",c:"#fff",brd:"none"}],["Warning",{bg:"#F5A623",c:"#fff",brd:"none"}]].map(([n,s])=><Fragment key={n}>
 <div style={{fontSize:"9px",fontWeight:600}}>{n}</div>
 {[{h:"32px",px:"12px",fs:"10px"},{h:"40px",px:"16px",fs:"12px"},{h:"48px",px:"32px",fs:"13px"}].map((sz,i)=><div key={i} style={{display:"flex",justifyContent:"center"}}><button className="vbtn" style={{height:sz.h,padding:`0 ${sz.px}`,fontSize:sz.fs,fontWeight:500,background:s.bg,color:s.c,border:s.brd,borderRadius:"6px"}}>{n}</button></div>)}
-</>)}
+</Fragment>)}
 <div style={{fontSize:"9px",fontWeight:600}}>Disabled</div>
 {[{h:"32px",px:"12px",fs:"10px"},{h:"40px",px:"16px",fs:"12px"},{h:"48px",px:"32px",fs:"13px"}].map((sz,i)=><div key={i} style={{display:"flex",justifyContent:"center"}}><button className="vbtn" disabled style={{height:sz.h,padding:`0 ${sz.px}`,fontSize:sz.fs,fontWeight:500,background:fg,color:bg,border:"none",borderRadius:"6px"}}>Disabled</button></div>)}
 </div>
 <H3>Inputs — all states (tab for focus ring)</H3>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr",gap:"6px",marginBottom:"14px"}}>{[["Default","","Type here"],["Filled","my-project",""],["With prefix","","Search..."],["Error","","Required"],["Disabled","disabled","Can't edit"]].map(([l,v,ph],i)=><div key={i}><div style={{fontSize:"8px",fontWeight:600,marginBottom:"2px"}}>{l}</div><div style={{position:"relative"}}>{l==="With prefix"&&<span style={{position:"absolute",left:"8px",top:"50%",transform:"translateY(-50%)",fontSize:"12px",color:sub}}>🔍</span>}<input className="vinput" disabled={l==="Disabled"} defaultValue={v} placeholder={ph} style={{width:"100%",height:"32px",padding:l==="With prefix"?"0 8px 0 28px":"0 8px",border:`1px solid ${l==="Error"?"#EE0000":bdr}`,borderRadius:"5px",background:"transparent",color:l==="Disabled"?sub:fg,fontSize:"10px",opacity:l==="Disabled"?.5:1}}/></div>{l==="Error"&&<div style={{fontSize:"8px",color:"#EE0000",marginTop:"2px"}}>This field is required</div>}</div>)}</div>
 <H3>Live Tabs (click to switch)</H3>
-{(()=>{const[t,st]=useState(0);return<div><div style={{borderBottom:`1px solid ${bdr}`,display:"flex"}}>{["Overview","Deployments","Analytics","Settings"].map((l,i)=><button key={i} onClick={()=>st(i)} className={`vtab ${i===t?"active":""}`}>{l}</button>)}</div><div style={{padding:"10px",fontSize:"11px",color:sub}}>Content: <strong style={{color:fg}}>{["Overview — stats and recent activity","Deployments — build history and status","Analytics — visitors and performance","Settings — project configuration"][t]}</strong></div></div>})()}
+<LiveTabs bdr={bdr} sub={sub} fg={fg}/>
 <H3>Form Validation Flow (type an email)</H3>
-{(()=>{const[v,sv]=useState("");const err=v.length>0&&!v.includes("@");const ok=v.includes("@")&&v.includes(".");return<div style={{maxWidth:"260px"}}><label style={{fontSize:"9px",fontWeight:600,marginBottom:"3px",display:"block"}}>Email Address</label><input className="vinput" value={v} onChange={e=>sv(e.target.value)} placeholder="you@example.com" style={{width:"100%",height:"32px",padding:"0 8px",border:`1px solid ${err?"#EE0000":ok?"#17C964":bdr}`,borderRadius:"5px",background:"transparent",color:fg,fontSize:"11px"}}/><div style={{fontSize:"9px",marginTop:"3px",color:err?"#EE0000":ok?"#17C964":sub}}>{v===""?"Required field":err?"Must be a valid email address":ok?"✓ Looks good!":"Keep typing..."}</div></div>})()}
+<EmailCheck bdr={bdr} fg={fg} sub={sub}/>
 <H3>Loading Button (click to simulate deploy)</H3>
-{(()=>{const[ld,sld]=useState(false);return<div style={{display:"flex",gap:"8px",alignItems:"center"}}><button className="vbtn" onClick={()=>{sld(true);setTimeout(()=>sld(false),2000)}} style={{height:"34px",padding:"0 18px",fontSize:"11px",fontWeight:500,background:fg,color:bg,border:"none",borderRadius:"6px",minWidth:"110px",display:"flex",alignItems:"center",justifyContent:"center",gap:"5px"}}>{ld?<>{[0,1,2].map(i=><div key={i} style={{width:"4px",height:"4px",borderRadius:"9999px",background:bg,animation:`dotBounce 1.4s ease-in-out infinite`,animationDelay:`${i*160}ms`}}/>)}</>:"Deploy Now"}</button><span style={{fontSize:"9px",color:sub}}>{ld?"Deploying...":"Click to see loading state"}</span></div>})()}
+<LoadingBtn fg={fg} bg={bg} sub={sub}/>
 <H3>Badge Colors (8 colors × solid + subtle, + inverted)</H3>
 <div style={{display:"flex",gap:"4px",flexWrap:"wrap",marginBottom:"6px"}}>{[["gray","#737373"],["blue","#0070F3"],["purple","#7928CA"],["amber","#F5A623"],["red","#EE0000"],["pink","#FF0080"],["green","#17C964"],["teal","#06B6D4"],["inverted",fg]].map(([n,c])=><span key={n} style={{fontSize:"9px",padding:"2px 8px",borderRadius:"9999px",background:c,color:n==="inverted"?bg:"#fff",fontWeight:500}}>{n}</span>)}</div>
 <div style={{display:"flex",gap:"4px",flexWrap:"wrap"}}>{[["gray-subtle","#737373"],["blue-subtle","#0070F3"],["purple-subtle","#7928CA"],["amber-subtle","#F5A623"],["red-subtle","#EE0000"],["pink-subtle","#FF0080"],["green-subtle","#17C964"],["teal-subtle","#06B6D4"]].map(([n,c])=>{const hex=c;return<span key={n} style={{fontSize:"9px",padding:"2px 8px",borderRadius:"9999px",background:hex+"18",color:hex,border:`1px solid ${hex}30`,fontWeight:500}}>{n}</span>})}</div>
 <H3>Switch / Toggle (click to flip)</H3>
-{(()=>{const[s1,ss1]=useState(false);const[s2,ss2]=useState(true);const[s3,ss3]=useState(false);return<div style={{display:"flex",gap:"24px",alignItems:"center"}}>{[[s1,ss1,"Analytics"],[s2,ss2,"Notifications"],[s3,ss3,"Disabled"]].map(([v,fn,l],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"8px"}}><button onClick={()=>i<2&&fn(!v)} role="switch" aria-checked={v} style={{position:"relative",width:"36px",height:"20px",borderRadius:"9999px",background:v?fg:bg2,border:v?"none":`1px solid ${bdr}`,cursor:i<2?"pointer":"not-allowed",opacity:i===2?.4:1,transition:"background .15s"}}><span style={{position:"absolute",top:"3px",left:v?"19px":"3px",width:"14px",height:"14px",borderRadius:"9999px",background:v?bg:fg,transition:"left .15s",boxShadow:"0 1px 2px rgba(0,0,0,.1)"}}/></button><span style={{fontSize:"10px",color:i===2?sub:fg}}>{l}</span></div>)}</div>})()}
+<SwitchGroup fg={fg} bg2={bg2} bdr={bdr} sub={sub}/>
 <H3>Progress Bar (click to advance)</H3>
-{(()=>{const[pct,sp]=useState(33);return<div><div style={{display:"flex",gap:"10px",marginBottom:"8px"}}>{[0,25,50,75,100].map(v=><button key={v} onClick={()=>sp(v)} className="vbtn" style={{height:"24px",padding:"0 8px",fontSize:"9px",border:`1px solid ${bdr}`,borderRadius:"4px",background:pct===v?fg:"transparent",color:pct===v?bg:fg}}>{v}%</button>)}</div><div style={{height:"4px",borderRadius:"9999px",background:bg2,overflow:"hidden"}}><div style={{width:`${pct}%`,height:"100%",borderRadius:"9999px",background:pct===100?"#17C964":"#0070F3",transition:"width .3s cubic-bezier(0.22,1,0.36,1)"}}/></div><div style={{fontSize:"9px",color:sub,marginTop:"4px"}}>{pct === 0 ? "Not started" : pct === 100 ? "✓ Complete" : `${pct}% — Building...`}</div></div>})()}
+<ProgressDemo bdr={bdr} bg2={bg2} fg={fg} bg={bg} sub={sub}/>
 <H3>Skeleton ↔ Loaded (click to toggle)</H3>
-{(()=>{const[loaded,sl]=useState(false);return<div><button onClick={()=>sl(!loaded)} className="vbtn" style={{height:"24px",padding:"0 10px",fontSize:"9px",border:`1px solid ${bdr}`,borderRadius:"4px",background:"transparent",color:fg,marginBottom:"8px"}}>{loaded?"Show Skeleton":"Show Loaded"}</button><div style={{border:`1px solid ${bdr}`,borderRadius:"6px",padding:"12px",maxWidth:"280px"}}>{loaded?<><div style={{display:"flex",gap:"8px",marginBottom:"10px"}}><div style={{width:"28px",height:"28px",borderRadius:"9999px",background:"#525252"}}/><div><div style={{fontSize:"11px",fontWeight:600}}>Evil Rabbit</div><div style={{fontSize:"9px",color:sub}}>Production · 2m ago</div></div></div><div style={{fontSize:"10px"}}>Build completed in 3.2s</div></>:<><div style={{display:"flex",gap:"8px",marginBottom:"10px"}}><div style={{width:"28px",height:"28px",borderRadius:"9999px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/><div style={{display:"flex",flexDirection:"column",gap:"4px"}}><div style={{width:"80px",height:"8px",borderRadius:"3px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/><div style={{width:"120px",height:"6px",borderRadius:"3px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/></div></div><div style={{width:"100%",height:"12px",borderRadius:"3px",background:skBg,animation:"pulse 2s ease-in-out infinite"}}/></>}</div></div>})()}
+<SkeletonToggle bdr={bdr} sub={sub} skBg={skBg} fg={fg}/>
 <H3>Tooltip Demo (hover over buttons)</H3>
-<div style={{display:"flex",gap:"12px",marginTop:"4px"}}>{[["Edit","✏️"],["Delete","🗑️"],["Share","📤"]].map(([label,icon])=>{const[show,setShow]=useState(false);return<div key={label} style={{position:"relative"}}><button onMouseEnter={()=>setShow(true)} onMouseLeave={()=>setShow(false)} className="vbtn" style={{width:"32px",height:"32px",display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${bdr}`,borderRadius:"6px",background:"transparent",fontSize:"14px"}}>{icon}</button>{show&&<div style={{position:"absolute",bottom:"100%",left:"50%",transform:"translateX(-50%)",marginBottom:"6px",padding:"4px 8px",borderRadius:"4px",background:fg,color:bg,fontSize:"9px",fontWeight:500,whiteSpace:"nowrap",pointerEvents:"none"}}>{label}<div style={{position:"absolute",top:"100%",left:"50%",transform:"translateX(-50%)",width:0,height:0,borderLeft:"4px solid transparent",borderRight:"4px solid transparent",borderTop:`4px solid ${fg}`}}/></div>}</div>})}</div>
+<div style={{display:"flex",gap:"12px",marginTop:"4px"}}>{[["Edit","✏️"],["Delete","🗑️"],["Share","📤"]].map(([label,icon])=><TooltipItem key={label} label={label} icon={icon} bdr={bdr} fg={fg} bg={bg}/>)}</div>
 </div>}
 
 {/* ═══ COLORS + CONTRAST ═══ */}
 {a==="colors"&&<div><H2>Colors + Contrast</H2><P>Click any swatch to copy hex. Side-by-side dark/light, chart palette, usage rules, and live WCAG checker.</P>
 <H3>Dark / Light Side-by-Side</H3>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"12px"}}>{[["DARK","#000"],["LIGHT","#FFF"]].map(([l,bgc])=><div key={l} style={{background:bgc,borderRadius:"5px",padding:"8px",border:`1px solid ${bgc==="#000"?"rgba(255,255,255,.08)":"rgba(0,0,0,.08)"}`}}><div style={{fontSize:"7px",color:"#737373",marginBottom:"3px",fontWeight:600}}>{l}</div><div style={{display:"flex",flexWrap:"wrap",gap:"2px"}}>{CS.Gray.map(c=><div key={c.n} style={{width:"20px",height:"20px",borderRadius:"2px",background:l==="DARK"?c.dk:c.l}} title={`${c.n}: ${l==="DARK"?c.dk:c.l}`}/>)}</div></div>)}</div>
-{Object.entries(CS).map(([g,colors])=><div key={g} style={{marginBottom:"8px"}}><H3>{g}</H3><div style={{display:"flex",flexWrap:"wrap",gap:"3px"}}>{colors.map(c=>{const hex=d?c.dk:c.l;const[cp,scp]=useState(false);return<button key={c.n} onClick={()=>{navigator.clipboard.writeText(hex);scp(true);setTimeout(()=>scp(false),1200)}} style={{background:hex,border:`1px solid ${bdr}`,borderRadius:"3px",padding:"6px 8px",cursor:"pointer",minWidth:"68px"}}><div style={{fontSize:"7px",fontFamily:"monospace",color:"#fff",mixBlendMode:"difference"}}>{cp?"✓":hex}</div><div style={{fontSize:"8px",fontWeight:600,color:"#fff",mixBlendMode:"difference"}}>{c.n}</div></button>})}</div></div>)}
+{Object.entries(CS).map(([g,colors])=><div key={g} style={{marginBottom:"8px"}}><H3>{g}</H3><div style={{display:"flex",flexWrap:"wrap",gap:"3px"}}>{colors.map(c=><SwatchBtn key={c.n} c={c} d={d} bdr={bdr}/>)}</div></div>)}
 <H3>Chart Palette (8 series colors)</H3>
 <div style={{display:"flex",gap:"3px",marginBottom:"12px"}}>{["#0070F3","#7928CA","#FF0080","#F5A623","#17C964","#06B6D4","#EE0000","#525252"].map((c,i)=><div key={i} style={{flex:1,height:"28px",borderRadius:"4px",background:c,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontSize:"7px",color:"#fff",fontFamily:"monospace"}}>{c}</span></div>)}</div>
 <H3>Color Usage Rules</H3>
@@ -2671,13 +3186,48 @@ rgba BORDERS (not hex grays)
   → 0.12: hover borders
   → 0.15: strong/active borders, pressed states`}/>
 <H3>Contrast Checker</H3>
-{(()=>{const[f1,sf]=useState(d?"#EDEDED":"#171717");const[b1,sb]=useState(d?"#000000":"#FFFFFF");const r=wcag(f1,b1);const aa=parseFloat(r)>=4.5;return<div style={{display:"flex",gap:"10px"}}><div style={{display:"flex",flexDirection:"column",gap:"6px"}}>{[["FG",f1,sf],["BG",b1,sb]].map(([l,v,fn])=><div key={l} style={{display:"flex",gap:"3px",alignItems:"center"}}><span style={{fontSize:"7px",fontWeight:600,width:"16px"}}>{l}</span><input type="color" value={v} onChange={e=>fn(e.target.value)} style={{width:"24px",height:"24px",border:"none",padding:0,cursor:"pointer"}}/><input className="vinput" value={v} onChange={e=>fn(e.target.value)} style={{width:"68px",height:"24px",padding:"0 4px",border:`1px solid ${bdr}`,borderRadius:"3px",background:"transparent",color:fg,fontSize:"8px",fontFamily:"monospace"}}/></div>)}</div><div style={{padding:"10px",borderRadius:"5px",background:b1,flex:1,textAlign:"center"}}><div style={{fontSize:"20px",fontWeight:800,color:f1}}>{r}:1</div></div><div style={{display:"flex",flexDirection:"column",gap:"2px",justifyContent:"center"}}>{[["AA",4.5,aa],["AAA",7,parseFloat(r)>=7],["Lg",3,parseFloat(r)>=3]].map(([l,th,p])=><div key={l} style={{display:"flex",alignItems:"center",gap:"2px"}}><span style={{width:"14px",height:"14px",borderRadius:"3px",background:p?"#17C964":"#EE0000",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"7px",color:"#fff"}}>{p?"✓":"✕"}</span><span style={{fontSize:"8px"}}>{l}</span></div>)}</div></div>})()}
+<ContrastChecker d={d} bdr={bdr} fg={fg}/>
 <H3>Gray Scale Contrast on Black (pre-calculated)</H3>
 <div style={{display:"flex",gap:"3px",flexWrap:"wrap"}}>{[["100","#F7F7F7"],["200","#E5E5E5"],["300","#D4D4D4"],["400","#A3A3A3"],["500","#737373"],["600","#525252"],["700","#404040"],["800","#262626"],["900","#171717"]].map(([n,c])=>{const r=wcag(c,"#000000");const pass=parseFloat(r)>=4.5;return<div key={n} style={{padding:"5px 7px",borderRadius:"3px",background:c,minWidth:"56px",textAlign:"center"}}><div style={{fontSize:"7px",fontFamily:"monospace",color:pass?"#000":"#fff"}}>{n}</div><div style={{fontSize:"9px",fontWeight:700,color:pass?"#000":"#fff"}}>{r}:1</div><div style={{fontSize:"6px",color:pass?"#000":"#fff"}}>{pass?"AA ✓":"Fail"}</div></div>})}</div>
 </div>}
 
 {/* ═══ EXPORT ═══ */}
 {a==="export"&&<div><H2>Export Tokens</H2><P>Full token sets in 4 formats. Copy the one you need.</P>
+<H3>Preview — Token Visualization</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{/* Colors */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Color Tokens</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4px"}}>
+{[["blue","#0070F3"],["red","#EE0000"],["amber","#F5A623"],["green","#17C964"],["teal","#06B6D4"],["purple","#7928CA"],["pink","#FF0080"],["fg",fg]].map(([n,c])=><div key={n} style={{display:"flex",alignItems:"center",gap:"6px",padding:"3px"}}><div style={{width:"18px",height:"18px",borderRadius:"4px",background:c,border:`1px solid ${bdr}`,flexShrink:0}}/><div style={{minWidth:0}}><div style={{fontSize:"9px",fontWeight:600}}>{n}</div><div style={{fontSize:"7px",color:sub,fontFamily:"monospace"}}>{c}</div></div></div>)}
+</div>
+</div>
+{/* Spacing */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Spacing Scale</div>
+<div style={{display:"flex",flexDirection:"column",gap:"3px"}}>
+{[[1,4],[2,8],[3,12],[4,16],[6,24],[8,32],[12,48],[16,64]].map(([tw,px])=><div key={tw} style={{display:"flex",alignItems:"center",gap:"6px"}}><div style={{width:`${Math.min(px,64)}px`,height:"10px",background:"#0070F3",opacity:0.7,borderRadius:"2px"}}/><span style={{fontSize:"8px",fontFamily:"monospace",color:sub}}>{tw} · {px}px</span></div>)}
+</div>
+</div>
+{/* Typography */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Typography Tokens</div>
+<div style={{display:"flex",flexDirection:"column",gap:"4px"}}>
+{[["display",20,800],["h1",16,700],["h2",13,700],["body",11,400],["caption",9,400],["mono",10,500]].map(([n,s,w])=><div key={n} style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:"6px"}}><span style={{fontSize:`${s}px`,fontWeight:w,fontFamily:n==="mono"?"monospace":"inherit",letterSpacing:n==="display"?"-0.03em":0}}>Aa</span><span style={{fontSize:"7px",color:sub,fontFamily:"monospace"}}>{n} · {s*1.4}px</span></div>)}
+</div>
+</div>
+{/* Radius & Shadows */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Radius + Shadow</div>
+<div style={{display:"flex",gap:"8px",flexWrap:"wrap",justifyContent:"space-around"}}>
+{[["sm",3,"0 1px 2px rgba(0,0,0,0.04)"],["md",6,"0 2px 8px rgba(0,0,0,0.1)"],["lg",8,"0 4px 24px rgba(0,0,0,0.15)"],["xl",12,"0 8px 40px rgba(0,0,0,0.25)"]].map(([n,r,s])=><div key={n} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"3px"}}><div style={{width:"28px",height:"28px",borderRadius:`${r}px`,background:bg,boxShadow:s,border:`1px solid ${b}`}}/><span style={{fontSize:"7px",color:sub,fontFamily:"monospace"}}>{n}</span></div>)}
+</div>
+</div>
+</div>
+<H3>Export Formats Available</H3>
+<div style={{display:"flex",gap:"4px",flexWrap:"wrap",marginBottom:"14px"}}>
+{[["CSS Variables","globals.css"],["Tailwind Config","tailwind.config.ts"],["Style Dictionary","tokens.json"],["Figma Tokens","design-tokens.json"]].map(([f,file],i)=><div key={i} style={{border:`1px solid ${b}`,borderRadius:"5px",padding:"6px 10px",display:"flex",alignItems:"center",gap:"6px",background:bg2}}><span style={{fontSize:"9px",fontWeight:600}}>{f}</span><span style={{fontSize:"7px",color:sub,fontFamily:"monospace"}}>{file}</span></div>)}
+</div>
 <H3>CSS Custom Properties (complete)</H3>
 <CB title="globals.css — tokens" code={`:root {
   /* Core */
@@ -2834,6 +3384,53 @@ rgba BORDERS (not hex grays)
 
 {/* ═══ NEXT.JS ═══ */}
 {a==="next"&&<div><H2>Next.js Setup</H2><P>Complete project setup: layout, error handling, loading, middleware, metadata.</P>
+<H3>Preview — What Next.js Setup Produces</H3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+{/* Project Tree */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Project Structure</div>
+<div style={{fontFamily:"monospace",fontSize:"9px",lineHeight:1.5}}>
+{["app/","├── layout.tsx","├── page.tsx","├── globals.css","├── error.tsx","├── loading.tsx","├── not-found.tsx","├── (marketing)/","├── (app)/","├── (auth)/","└── api/","components/","├── ui/","└── providers/","lib/","└── cn.ts","middleware.ts","next.config.ts","tailwind.config.ts"].map((l,i)=>{const isDir=l.endsWith("/");const isTree=l.startsWith("│")||l.startsWith("├")||l.startsWith("└");return<div key={i} style={{color:isDir&&!isTree?"#0070F3":isTree?sub:fg,fontWeight:isDir&&!isTree?600:400}}>{l}</div>})}
+</div>
+</div>
+{/* Loading Flow */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Route Lifecycle</div>
+<div style={{display:"flex",flexDirection:"column",gap:"4px"}}>
+{[
+["loading.tsx","#F5A623","Route is fetching data",<div style={{display:"flex",gap:"4px",alignItems:"center"}}><div style={{width:"10px",height:"10px",borderRadius:"9999px",border:`1.5px solid ${bdr}`,borderTopColor:fg,animation:"spin 0.8s linear infinite"}}/><span style={{fontSize:"8px",color:sub}}>Loading...</span></div>],
+["page.tsx","#17C964","Data loaded, render page",<div style={{display:"flex",gap:"4px",alignItems:"center"}}><span style={{width:"6px",height:"6px",borderRadius:"9999px",background:"#17C964"}}/><span style={{fontSize:"8px",color:fg,fontWeight:600}}>Page rendered</span></div>],
+["error.tsx","#EE0000","Something threw",<div style={{display:"flex",gap:"4px",alignItems:"center"}}><span style={{fontSize:"10px",color:"#EE0000"}}>⚠</span><span style={{fontSize:"8px",color:fg}}>Something went wrong</span><button style={{fontSize:"7px",padding:"1px 5px",background:"transparent",color:fg,border:`1px solid ${bdr}`,borderRadius:"2px"}}>Retry</button></div>],
+["not-found.tsx","#737373","Route doesn't exist",<div style={{display:"flex",gap:"4px",alignItems:"center"}}><span style={{fontSize:"10px"}}>404</span><span style={{fontSize:"8px",color:sub}}>Page not found</span></div>]
+].map(([f,c,desc,demo],i)=><div key={i} style={{padding:"5px",background:bg2,border:`1px solid ${b}`,borderRadius:"4px"}}><div style={{display:"flex",alignItems:"center",gap:"4px",marginBottom:"3px"}}><span style={{width:"4px",height:"4px",borderRadius:"9999px",background:c}}/><span style={{fontSize:"8px",fontFamily:"monospace",fontWeight:600,color:fg}}>{f}</span><span style={{fontSize:"7px",color:sub}}>— {desc}</span></div><div style={{padding:"4px 6px",background:bg,border:`1px solid ${b}`,borderRadius:"3px"}}>{demo}</div></div>)}
+</div>
+</div>
+{/* Metadata Preview */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Social Card Metadata</div>
+<div style={{border:`1px solid ${bdr}`,borderRadius:"6px",background:bg,overflow:"hidden"}}>
+<div style={{height:"60px",background:"linear-gradient(135deg,#0070F3,#7928CA)",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{fontSize:"14px",fontWeight:800,color:"#fff",letterSpacing:"-0.02em"}}>Acme Inc.</div></div>
+<div style={{padding:"6px 8px"}}>
+<div style={{fontSize:"6px",color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>acme.com</div>
+<div style={{fontSize:"9px",fontWeight:600,marginTop:"1px"}}>Ship faster with Acme</div>
+<div style={{fontSize:"7px",color:sub,marginTop:"1px"}}>The fastest way to deploy.</div>
+</div>
+</div>
+</div>
+{/* Middleware Flow */}
+<div style={{border:`1px solid ${b}`,borderRadius:"6px",padding:"10px"}}>
+<div style={{fontSize:"8px",fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:"8px",letterSpacing:"0.06em"}}>Middleware Request Flow</div>
+<div style={{display:"flex",flexDirection:"column",gap:"3px"}}>
+{[
+["Request","→ /dashboard",fg],
+["middleware.ts","Check session cookie",sub],
+["Authorized?","yes → next()",`#17C964`],
+["Authorized?","no → redirect /login",`#EE0000`],
+["page.tsx","Render route",fg]
+].map(([step,d,c],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"6px",padding:"3px 6px",background:bg2,borderLeft:`2px solid ${c}`,borderRadius:"2px"}}><span style={{fontSize:"7px",fontFamily:"monospace",fontWeight:700,color:c,width:"70px"}}>{step}</span><span style={{fontSize:"8px",color:fg,flex:1}}>{d}</span></div>)}
+</div>
+</div>
+</div>
 <CB title="1. Install dependencies" code={`npm install geist next-themes sonner cmdk clsx tailwind-merge
 # geist v1.7.0 — includes Sans, Mono, and Pixel (5 display variants)
 # Optional: npm install framer-motion @hookform/resolvers zod react-hook-form
