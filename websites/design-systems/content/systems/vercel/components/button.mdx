@@ -1,0 +1,146 @@
+---
+slug: button
+name: Button
+summary: Geist's primary action control. 7 variants × 3 sizes, with shape and loading support.
+category: inputs
+patternSlug: button
+states:
+  - default
+  - hover
+  - focus-visible
+  - active
+  - disabled
+  - loading
+variants:
+  - slug: primary
+    name: Primary
+    description: Highest-emphasis action. Solid fill using the foreground token.
+  - slug: secondary
+    name: Secondary
+    description: Bordered, hover-filled. Pairs with a primary button.
+  - slug: tertiary
+    name: Tertiary
+    description: Subtle surface fill, for quiet actions in dense contexts.
+  - slug: error
+    name: Error
+    description: Destructive confirmation (delete, remove). Red fill.
+  - slug: warning
+    name: Warning
+    description: Caution action. Amber fill.
+  - slug: ghost
+    name: Ghost
+    description: No fill or border until hover. Used inside toolbars and dense UI.
+  - slug: link
+    name: Link
+    description: Text-only with accent color; renders flush without padding.
+api:
+  - name: variant
+    type: '"primary" | "secondary" | "tertiary" | "error" | "warning" | "ghost" | "link"'
+    default: '"primary"'
+    description: Visual emphasis.
+  - name: size
+    type: '"sm" | "md" | "lg"'
+    default: '"md"'
+    description: Height and padding scale.
+  - name: shape
+    type: '"default" | "rounded" | "svgOnly"'
+    default: '"default"'
+    description: '"rounded" for marketing pill buttons; "svgOnly" for icon-only squares.'
+  - name: shadow
+    type: boolean
+    description: Adds a drop shadow; used with shape="rounded" for marketing pill CTAs.
+  - name: loading
+    type: boolean
+    description: Replaces children with a three-dot bounce loader; also disables the button.
+  - name: prefix
+    type: ReactNode
+    description: Icon or element rendered before children.
+  - name: suffix
+    type: ReactNode
+    description: Icon or element rendered after children.
+composedOf: []
+tokensUsed:
+  - foreground
+  - background
+  - border
+  - border-hover
+  - bg-2
+  - red
+  - amber
+  - blue
+code:
+  - language: tsx
+    label: components/ui/button.tsx
+    code: |
+      import { forwardRef } from 'react';
+      import { cn } from '@/lib/cn';
+
+      // Geist Button: 7 variants × 3 sizes + shapes + shadow
+      const variants = {
+        primary:   'bg-foreground text-background hover:opacity-90',
+        secondary: 'border border-[var(--border)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-2)]',
+        tertiary:  'bg-[var(--bg-2)] hover:bg-[var(--border)]',
+        error:     'bg-[var(--red)] text-white hover:opacity-90',
+        warning:   'bg-[var(--amber)] text-white hover:opacity-90',
+        ghost:     'hover:bg-[var(--bg-2)]',
+        link:      'text-[var(--blue)] hover:underline underline-offset-4 h-auto px-0',
+      };
+      const sizes = {
+        sm: 'h-8 px-3 text-xs gap-1.5',
+        md: 'h-10 px-4 text-sm gap-2',
+        lg: 'h-12 px-8 text-sm gap-2',
+      };
+
+      interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+        variant?: keyof typeof variants;
+        size?: keyof typeof sizes;
+        shape?: 'default' | 'rounded' | 'svgOnly';
+        shadow?: boolean;
+        loading?: boolean;
+        prefix?: React.ReactNode;
+        suffix?: React.ReactNode;
+      }
+
+      export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+        ({ className, variant = 'primary', size = 'md', shape = 'default', shadow, loading, disabled, prefix, suffix, children, ...props }, ref) => (
+          <button
+            ref={ref}
+            disabled={disabled || loading}
+            className={cn(
+              'inline-flex items-center justify-center font-medium transition-all',
+              'focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2',
+              'disabled:opacity-40 disabled:pointer-events-none',
+              'active:scale-[0.97]',
+              shape === 'rounded' ? 'rounded-full' : shape === 'svgOnly' ? 'rounded-md aspect-square p-0' : 'rounded-md',
+              shadow && 'shadow-lg',
+              variants[variant], sizes[size], className
+            )}
+            aria-label={shape === 'svgOnly' ? (props['aria-label'] || 'Action') : undefined}
+            {...props}
+          >
+            {loading ? (
+              <div className="flex gap-1">
+                {[0,1,2].map(i => (
+                  <div key={i} className="w-1 h-1 rounded-full bg-current animate-bounce"
+                    style={{ animationDelay: `${i * 0.15}s` }} />
+                ))}
+              </div>
+            ) : (
+              <>{prefix}{children}{suffix}</>
+            )}
+          </button>
+        )
+      );
+      Button.displayName = 'Button';
+---
+
+Geist's Button is deliberately narrow: a single component expresses every emphasis level the system needs, including destructive and marketing-pill variants. Variants stay visually quiet by default — the primary action is the one filled with `--foreground`, which flips cleanly under dark/light.
+
+Notable design choices:
+
+- **One accent for focus.** Every variant shares the same blue focus ring, so focus feels like a system-level affordance rather than a per-variant colour.
+- **Active state is scale-down, not colour.** `active:scale-[0.97]` gives tactile feedback without needing per-variant pressed colours.
+- **Loading replaces content.** No spinner-over-label; the three-dot bounce owns the button until the promise resolves. This simplifies layout (no width jitter) at the cost of hiding the original label.
+- **Link variant collapses padding.** Resets `h-auto` and `px-0` so a link-styled Button flows inside prose without extra spacing.
+
+Pair with `ButtonLink` when the action is navigation — same visual API, `<a>` semantics, no `disabled`/`loading` behaviour.

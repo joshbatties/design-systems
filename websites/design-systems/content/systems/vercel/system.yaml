@@ -1,0 +1,42 @@
+slug: vercel
+name: Geist
+company: Vercel
+tagline: Vercel's in-house design system; minimal, tokenised, dark-first.
+description: >
+  Geist is Vercel's design system — a small, opinionated set of primitives
+  built around a lean token palette, a single accent hue, and strong focus
+  on developer ergonomics. This reference catalogues the components,
+  tokens, section patterns, and recipes we've captured from it.
+
+accentColor: "#0070F3"
+
+stack:
+  - react
+styling:
+  - tailwind
+theme: both
+density: comfortable
+
+personality:
+  - minimal
+  - technical
+industry:
+  - developer-tools
+
+license: open-source
+
+sources:
+  - type: site
+    url: https://vercel.com
+  - type: docs
+    url: https://vercel.com/geist
+  - type: github
+    url: https://github.com/vercel/geist
+
+capturedAt: "2026-04-12"
+lastReviewed: "2026-04-12"
+
+tags:
+  - tokens-first
+  - dark-first
+  - type-led

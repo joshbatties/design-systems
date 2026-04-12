@@ -1,0 +1,176 @@
+# Closed-list taxonomy. Every entity's tag fields must resolve here.
+# See future-plans/04-taxonomy.md for the governance rules.
+
+# Component patterns — cross-system primitives. Adding one requires >=2 instances.
+componentPatterns:
+  - slug: button
+    name: Button
+    description: Primary action control; clickable element that triggers an action.
+
+  - slug: icon-button
+    name: Icon Button
+    description: Compact button whose label is an icon, used when space is tight.
+
+  - slug: input-text
+    name: Text Input
+    description: Single-line editable text field.
+
+  - slug: input-textarea
+    name: Textarea
+    description: Multi-line editable text field.
+
+  - slug: dialog
+    name: Dialog
+    description: Modal overlay for focused tasks requiring user attention.
+
+  - slug: tooltip
+    name: Tooltip
+    description: Transient label that appears on hover or focus.
+
+  - slug: badge
+    name: Badge
+    description: Small status or label indicator.
+
+  - slug: tabs
+    name: Tabs
+    description: Toggles between related panels of content.
+
+  - slug: tooltip-trigger
+    name: Tooltip Trigger
+    description: Element that activates a tooltip on hover or focus.
+
+# Section patterns — cross-system compositions. Same >=2 rule.
+sectionPatterns: []
+
+# Component categories — grouping used on system detail pages.
+componentCategories:
+  - slug: inputs
+    name: Inputs
+  - slug: feedback
+    name: Feedback
+  - slug: navigation
+    name: Navigation
+  - slug: overlays
+    name: Overlays
+  - slug: data-display
+    name: Data display
+  - slug: layout
+    name: Layout
+  - slug: typography
+    name: Typography
+  - slug: media
+    name: Media
+  - slug: utilities
+    name: Utilities
+
+# Token categories.
+tokenCategories:
+  - slug: color
+    name: Color
+  - slug: spacing
+    name: Spacing
+  - slug: radius
+    name: Radius
+  - slug: typography
+    name: Typography
+  - slug: shadow
+    name: Shadow
+  - slug: motion
+    name: Motion
+  - slug: z-index
+    name: Z-index
+  - slug: breakpoint
+    name: Breakpoint
+
+# Semantic token roles (optional per-token).
+tokenSemanticRoles:
+  - surface-1
+  - surface-2
+  - surface-3
+  - surface-raised
+  - surface-overlay
+  - border-subtle
+  - border-default
+  - border-strong
+  - fg-primary
+  - fg-secondary
+  - fg-muted
+  - fg-disabled
+  - accent
+  - accent-hover
+  - accent-active
+  - accent-foreground
+  - success
+  - warning
+  - danger
+  - info
+  - focus-ring
+
+# System-level attribute vocabularies.
+stacks:
+  - react
+  - vue
+  - svelte
+  - solid
+  - angular
+  - web-components
+  - css-only
+
+stylings:
+  - tailwind
+  - css-modules
+  - css-in-js
+  - vanilla-extract
+  - sass
+  - vanilla
+
+themes:
+  - dark-native
+  - light-native
+  - both
+
+densities:
+  - comfortable
+  - compact
+  - dense
+
+personalities:
+  - minimal
+  - playful
+  - editorial
+  - technical
+  - brutalist
+  - glassy
+
+industries:
+  - developer-tools
+  - fintech
+  - saas-general
+  - ecommerce
+  - marketing
+  - content
+
+licenses:
+  - open-source
+  - proprietary-reference
+  - freemium
+
+# Recipe kinds.
+recipeKinds:
+  - migration
+  - anti-pattern
+  - decision
+  - scaffold
+  - responsive-rule
+  - dark-mode
+  - accessibility
+
+# Entity states tracked on components.
+componentStates:
+  - default
+  - hover
+  - focus-visible
+  - active
+  - disabled
+  - loading
+  - error
