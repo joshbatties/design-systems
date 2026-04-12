@@ -1,5 +1,18 @@
+import Link from "next/link";
 import { systems } from "@/app/data/systems";
 import { SystemCard } from "@/app/components/SystemCard";
+import { getAllComponents } from "@/lib/content";
+
+const componentsBySystem = getAllComponents().reduce<
+  Record<string, { slug: string; name: string; category: string }[]>
+>((acc, { system, component }) => {
+  (acc[system.slug] ??= []).push({
+    slug: component.slug,
+    name: component.name,
+    category: component.category,
+  });
+  return acc;
+}, {});
 
 export default function Home() {
   const totalComponents = systems.reduce(
@@ -103,6 +116,32 @@ export default function Home() {
                 ))}
               </div>
             </div>
+
+            {/* Content-graph components (from MDX) */}
+            {componentsBySystem[system.slug]?.length ? (
+              <div className="mb-6 flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-white/40 mr-1">
+                  Components
+                </span>
+                {componentsBySystem[system.slug].map((c) => (
+                  <Link
+                    key={c.slug}
+                    href={`/systems/${system.slug}/components/${c.slug}`}
+                    className="group flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.16] transition"
+                  >
+                    <span className="text-[11px] font-medium text-white/85 group-hover:text-white">
+                      {c.name}
+                    </span>
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-white/30">
+                      {c.category}
+                    </span>
+                  </Link>
+                ))}
+                <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider bg-[#0070F3]/15 text-[#4BA3FF] border border-[#0070F3]/30">
+                  new
+                </span>
+              </div>
+            ) : null}
 
             {/* Hero preview card — full system */}
             <div className="mb-6">
