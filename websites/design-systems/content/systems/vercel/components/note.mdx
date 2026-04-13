@@ -1,0 +1,135 @@
+---
+slug: note
+name: Note
+summary: Inline callout/annotation; 11 semantic types with outline-only or filled variants.
+category: feedback
+patternSlug: callout
+states:
+  - default
+  - disabled
+variants:
+  - slug: default
+    name: Default
+    description: Neutral callout; uses the generic border token.
+  - slug: secondary
+    name: Secondary
+    description: Low-emphasis neutral; lighter text.
+  - slug: tertiary
+    name: Tertiary
+    description: Minimum-emphasis neutral; fading annotation.
+  - slug: success
+    name: Success
+    description: Green accent; confirmation or positive signal.
+  - slug: warning
+    name: Warning
+    description: Amber accent; needs attention but not blocking.
+  - slug: error
+    name: Error
+    description: Red accent; destructive or failure state.
+  - slug: alert
+    name: Alert
+    description: Amber accent variant; urgent but informational.
+  - slug: lite
+    name: Lite
+    description: Borderless neutral; for the quietest annotations.
+  - slug: ghost
+    name: Ghost
+    description: Invisible container; reserved space for an inline hint.
+  - slug: violet
+    name: Violet
+    description: Purple accent; feature-launch or beta callout.
+  - slug: cyan
+    name: Cyan
+    description: Cyan accent; secondary informational callout.
+api:
+  - name: type
+    type: '"default" | "secondary" | "tertiary" | "success" | "warning" | "error" | "alert" | "lite" | "ghost" | "violet" | "cyan"'
+    default: '"default"'
+    description: Semantic colour + tone.
+  - name: fill
+    type: boolean
+    default: "false"
+    description: Adds a faint background tint matched to the type. Default is outline-only.
+  - name: size
+    type: '"small" | "default" | "large"'
+    default: '"default"'
+    description: Padding and text size.
+  - name: label
+    type: string | boolean
+    description: "`true` auto-labels with the capitalised type; a string sets a custom label; omit for no label."
+  - name: action
+    type: '{ label: string; onClick: () => void }'
+    description: Optional right-aligned action link.
+  - name: disabled
+    type: boolean
+    description: Dims and disables pointer events.
+composedOf: []
+tokensUsed:
+  - border
+  - bg-2
+code:
+  - language: tsx
+    label: components/ui/note.tsx
+    code: |
+      import { cn } from '@/lib/cn';
+
+      const types = {
+        default:   { border: 'border-[var(--border)]',    bg: '', text: 'text-foreground' },
+        secondary: { border: 'border-gray-500/20',        bg: '', text: 'text-gray-600 dark:text-gray-400' },
+        tertiary:  { border: 'border-gray-500/15',        bg: '', text: 'text-gray-500' },
+        success:   { border: 'border-green-500/30',       bg: '', text: 'text-green-600 dark:text-green-400' },
+        warning:   { border: 'border-amber-500/30',       bg: '', text: 'text-amber-600 dark:text-amber-400' },
+        error:     { border: 'border-red-500/30',         bg: '', text: 'text-red-600 dark:text-red-400' },
+        alert:     { border: 'border-amber-500/30',       bg: '', text: 'text-amber-600 dark:text-amber-400' },
+        lite:      { border: 'border-transparent',        bg: '', text: 'text-gray-500' },
+        ghost:     { border: 'border-transparent',        bg: '', text: 'text-gray-400' },
+        violet:    { border: 'border-purple-500/30',      bg: '', text: 'text-purple-600 dark:text-purple-400' },
+        cyan:      { border: 'border-cyan-500/30',        bg: '', text: 'text-cyan-600 dark:text-cyan-400' },
+      };
+
+      const fillBg = {
+        default: 'bg-[var(--bg-2)]', secondary: 'bg-gray-500/5', tertiary: 'bg-gray-500/5',
+        success: 'bg-green-500/5', warning: 'bg-amber-500/5', error: 'bg-red-500/5',
+        alert: 'bg-amber-500/5', lite: 'bg-transparent', ghost: 'bg-transparent',
+        violet: 'bg-purple-500/5', cyan: 'bg-cyan-500/5',
+      };
+
+      interface NoteProps {
+        type?: keyof typeof types;
+        fill?: boolean;
+        size?: 'small' | 'default' | 'large';
+        label?: string | boolean;
+        action?: { label: string; onClick: () => void };
+        disabled?: boolean;
+        children: React.ReactNode;
+        className?: string;
+      }
+
+      export function Note({ type = 'default', fill = false, size = 'default', label, action, disabled, children, className }: NoteProps) {
+        const t = types[type];
+        const sizeClasses = { small: 'py-2 px-3 text-xs', default: 'p-4 text-sm', large: 'p-5 text-sm' };
+        return (
+          <div className={cn('flex items-start gap-3 rounded-lg border',
+            t.border, fill ? fillBg[type] : '', sizeClasses[size],
+            disabled && 'opacity-50 pointer-events-none', className)}>
+            {label && <span className={cn('font-semibold shrink-0', t.text)}>
+              {label === true ? type.charAt(0).toUpperCase() + type.slice(1) : label}:
+            </span>}
+            <div className="flex-1">{children}</div>
+            {action && (
+              <button onClick={action.onClick}
+                className="text-blue-500 hover:underline underline-offset-4 shrink-0">
+                {action.label}
+              </button>
+            )}
+          </div>
+        );
+      }
+---
+
+Note is the system's in-flow callout — an alternative to Toast when the signal belongs inline with the content rather than in the corner of the viewport. Two decisions stand out:
+
+- **Outline-only default.** The filled tint is opt-in via `fill`, so Notes read as quiet annotations until explicitly elevated. On a dense form, a row of filled Notes feels shouty; outline-only sits within the layout rhythm.
+- **`alert` vs `warning` duplication.** Both use the same amber tokens. The split is semantic: `warning` is a stateful validation signal, `alert` is a transient urgency signal. They're intentionally indistinguishable visually so the UI doesn't leak an internal taxonomy to the user.
+
+The `label` prop is unusual — passing `true` auto-capitalises `type` as the prefix, which keeps short callouts single-line without forcing the author to restate the semantic name.

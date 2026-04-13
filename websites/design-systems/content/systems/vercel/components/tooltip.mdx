@@ -1,0 +1,93 @@
+---
+slug: tooltip
+name: Tooltip
+summary: Hover/focus label with top or bottom placement, configurable delay.
+category: overlays
+patternSlug: tooltip
+states:
+  - default
+  - hover
+  - focus-visible
+variants: []
+api:
+  - name: content
+    type: string
+    required: true
+    description: The label text. Tooltip deliberately accepts strings only — no rich content.
+  - name: side
+    type: '"top" | "bottom"'
+    default: '"top"'
+    description: Placement relative to the trigger.
+  - name: delayMs
+    type: number
+    default: "200"
+    description: Hover delay before the tooltip appears. No delay on hide.
+  - name: children
+    type: ReactElement
+    required: true
+    description: The trigger element. Must be a single React element.
+composedOf: []
+tokensUsed:
+  - foreground
+  - background
+code:
+  - language: tsx
+    label: components/ui/tooltip.tsx
+    code: |
+      'use client';
+      import { useState, useRef, useCallback } from 'react';
+      import { cn } from '@/lib/cn';
+
+      interface TooltipProps {
+        content: string;
+        side?: 'top' | 'bottom';
+        delayMs?: number;
+        children: React.ReactElement;
+      }
+
+      export function Tooltip({ content, side = 'top', delayMs = 200, children }: TooltipProps) {
+        const [show, setShow] = useState(false);
+        const timer = useRef<ReturnType<typeof setTimeout>>();
+
+        const handleEnter = useCallback(() => {
+          timer.current = setTimeout(() => setShow(true), delayMs);
+        }, [delayMs]);
+
+        const handleLeave = useCallback(() => {
+          clearTimeout(timer.current);
+          setShow(false);
+        }, []);
+
+        return (
+          <div className="relative inline-block" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+            {children}
+            {show && (
+              <div
+                role="tooltip"
+                className={cn(
+                  'absolute left-1/2 -translate-x-1/2 z-[800]',
+                  'px-2.5 py-1 rounded-md bg-foreground text-background text-xs font-medium',
+                  'whitespace-nowrap pointer-events-none',
+                  side === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+                )}
+              >
+                {content}
+                <div className={cn(
+                  'absolute left-1/2 -translate-x-1/2 w-0 h-0',
+                  'border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent',
+                  side === 'top'
+                    ? 'top-full border-t-[4px] border-t-foreground'
+                    : 'bottom-full border-b-[4px] border-b-foreground'
+                )} />
+              </div>
+            )}
+          </div>
+        );
+      }
+---
+
+The API constrains `content` to a string. That's a deliberate narrowing — tooltips with formatted content almost always want a Popover instead. By making it impossible to pass rich content, the system nudges consumers toward the correct component.
+
+Placement is limited to `top` or `bottom`; `left`/`right` aren't offered because typeahead patterns elsewhere in the system rely on those axes. Geist prefers consistent spatial language across components over per-component flexibility.
+
+The arrow is rendered via the triangle-from-borders trick — no SVG, no extra DOM node for the asset, just two `border-l`/`border-r` transparent triangles meeting the foreground-coloured `border-t`/`border-b`. This stays crisp at any zoom without transforms.

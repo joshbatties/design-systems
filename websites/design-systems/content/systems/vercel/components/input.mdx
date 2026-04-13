@@ -1,0 +1,86 @@
+---
+slug: input
+name: Input
+summary: Single-line text input with optional label, hint, error, and prefix/suffix slots.
+category: inputs
+patternSlug: input-text
+states:
+  - default
+  - hover
+  - focus-visible
+  - disabled
+  - error
+variants: []
+api:
+  - name: label
+    type: string
+    description: Optional rendered label bound to the input via for/id.
+  - name: error
+    type: string
+    description: Validation message; sets aria-invalid and red border.
+  - name: hint
+    type: string
+    description: Helper text below the input (suppressed when error is set).
+  - name: prefix
+    type: ReactNode
+    description: Decorative content rendered inside the left edge of the input.
+  - name: suffix
+    type: ReactNode
+    description: Decorative content rendered inside the right edge.
+composedOf: []
+tokensUsed:
+  - border
+  - border-hover
+  - blue
+  - red
+code:
+  - language: tsx
+    label: components/ui/input.tsx
+    code: |
+      import { forwardRef } from 'react';
+      import { cn } from '@/lib/cn';
+
+      interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+        label?: string;
+        error?: string;
+        hint?: string;
+        prefix?: React.ReactNode;
+        suffix?: React.ReactNode;
+      }
+
+      export const Input = forwardRef<HTMLInputElement, InputProps>(
+        ({ className, label, error, hint, prefix, suffix, id, ...props }, ref) => {
+          const inputId = id || label?.toLowerCase().replace(/\s/g, '-');
+          return (
+            <div className="space-y-1.5">
+              {label && <label htmlFor={inputId} className="text-sm font-medium">{label}</label>}
+              <div className="relative">
+                {prefix && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{prefix}</div>}
+                <input
+                  ref={ref} id={inputId}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
+                  className={cn(
+                    'h-10 w-full rounded-md border bg-transparent px-3 text-sm',
+                    'placeholder:text-gray-400 transition-colors',
+                    'focus:border-[var(--blue)] focus:ring-2 focus:ring-blue-500/15 outline-none',
+                    'disabled:opacity-50 disabled:cursor-not-allowed',
+                    error ? 'border-[var(--red)]' : 'border-[var(--border)] hover:border-[var(--border-hover)]',
+                    prefix && 'pl-10', suffix && 'pr-10', className
+                  )}
+                  {...props}
+                />
+                {suffix && <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{suffix}</div>}
+              </div>
+              {error && <p id={`${inputId}-error`} className="text-xs text-[var(--red)]">{error}</p>}
+              {hint && !error && <p id={`${inputId}-hint`} className="text-xs text-gray-500">{hint}</p>}
+            </div>
+          );
+        }
+      );
+      Input.displayName = 'Input';
+---
+
+Geist's Input collapses the usual family of field primitives (label, hint, error, affixes) into one component. The label is auto-id'd from its text so consumers rarely need to pass `id` themselves, and `aria-describedby` points at whichever of `hint`/`error` is active — error wins when both are set.
+
+The focus style is unusual for the system: most Geist primitives use a focus-ring only, but Input also *shifts* the border to `--blue` so the field's own geometry signals focus. That pairs well with the low-contrast default border and avoids double-signalling on dense forms.

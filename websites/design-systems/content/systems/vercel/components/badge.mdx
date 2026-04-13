@@ -1,0 +1,104 @@
+---
+slug: badge
+name: Badge
+summary: Pill indicator; 9 colors × solid or subtle fill × 3 sizes.
+category: data-display
+patternSlug: badge
+states:
+  - default
+variants:
+  - slug: gray
+    name: Gray
+    description: Neutral status; used for inactive, queued, or default states.
+  - slug: blue
+    name: Blue
+    description: Informational accent; matches the system's primary accent.
+  - slug: green
+    name: Green
+    description: Success, healthy, ready.
+  - slug: red
+    name: Red
+    description: Error, failure, destructive context.
+  - slug: amber
+    name: Amber
+    description: Warning or pending.
+  - slug: purple
+    name: Purple
+    description: Premium / enterprise tier labelling.
+  - slug: pink
+    name: Pink
+    description: Experimental or beta features.
+  - slug: teal
+    name: Teal
+    description: Secondary informational.
+  - slug: inverted
+    name: Inverted
+    description: Foreground/background swap; high-emphasis static label.
+api:
+  - name: color
+    type: '"gray" | "blue" | "green" | "red" | "amber" | "purple" | "pink" | "teal" | "inverted"'
+    default: '"gray"'
+    description: Palette.
+  - name: variant
+    type: '"solid" | "subtle"'
+    default: '"subtle"'
+    description: solid fills the background fully; subtle uses a 10%-opacity fill with a soft border.
+  - name: size
+    type: '"sm" | "md" | "lg"'
+    default: '"md"'
+    description: Text size and padding.
+composedOf: []
+tokensUsed:
+  - foreground
+  - background
+code:
+  - language: tsx
+    label: components/ui/badge.tsx
+    code: |
+      import { cn } from '@/lib/cn';
+
+      // Geist badge: 9 colors × solid+subtle + inverted
+      const colors = {
+        gray:   { solid: 'bg-gray-500 text-white',         subtle: 'bg-gray-500/10 text-gray-500 border-gray-500/20' },
+        blue:   { solid: 'bg-blue-500 text-white',         subtle: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+        green:  { solid: 'bg-green-500 text-white',        subtle: 'bg-green-500/10 text-green-500 border-green-500/20' },
+        red:    { solid: 'bg-red-500 text-white',          subtle: 'bg-red-500/10 text-red-500 border-red-500/20' },
+        amber:  { solid: 'bg-amber-500 text-white',        subtle: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
+        purple: { solid: 'bg-purple-500 text-white',       subtle: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
+        pink:   { solid: 'bg-pink-500 text-white',         subtle: 'bg-pink-500/10 text-pink-500 border-pink-500/20' },
+        teal:   { solid: 'bg-teal-500 text-white',         subtle: 'bg-teal-500/10 text-teal-500 border-teal-500/20' },
+        inverted: { solid: 'bg-foreground text-background', subtle: 'bg-foreground text-background' },
+      };
+      const sizes = {
+        sm: 'text-[10px] px-1.5 py-px',
+        md: 'text-xs px-2 py-0.5',
+        lg: 'text-xs px-2.5 py-1',
+      };
+
+      interface BadgeProps {
+        color?: keyof typeof colors;
+        variant?: 'solid' | 'subtle';
+        size?: keyof typeof sizes;
+        children: React.ReactNode;
+        className?: string;
+      }
+
+      export function Badge({ color = 'gray', variant = 'subtle', size = 'md', children, className }: BadgeProps) {
+        return (
+          <span className={cn(
+            'inline-flex items-center gap-1 rounded-full font-medium',
+            variant === 'subtle' && 'border',
+            colors[color][variant], sizes[size], className
+          )}>
+            {children}
+          </span>
+        );
+      }
+---
+
+A standard 9-color × 2-variant palette plus an `inverted` slot for the highest-emphasis static labels. Subtle variant is the default — it's designed to sit inside dense UI without shouting.
+
+Two nuances worth noting:
+
+- `inverted` ignores the `solid`/`subtle` distinction; both map to `bg-foreground text-background`. The component keeps the API shape orthogonal, but the one option collapses to one visual.
+- The border only appears on `subtle` variants. Solid badges are edge-to-edge fills; adding a border there would double-render the edge.

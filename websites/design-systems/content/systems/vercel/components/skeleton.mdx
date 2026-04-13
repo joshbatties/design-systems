@@ -1,0 +1,68 @@
+---
+slug: skeleton
+name: Skeleton
+summary: Layout-preserving placeholder; sized freely, with four corner-radius presets.
+category: feedback
+patternSlug: skeleton
+states:
+  - default
+variants: []
+api:
+  - name: width
+    type: string | number
+    description: Width in px (number) or CSS length (string, e.g. "60%").
+  - name: height
+    type: string | number
+    default: "16"
+    description: Height in px (number) or CSS length.
+  - name: rounded
+    type: '"sm" | "md" | "lg" | "full"'
+    default: '"md"'
+    description: Corner radius. "full" renders a pill/circle.
+  - name: animate
+    type: boolean
+    default: "true"
+    description: Apply the pulse animation. Disable for static placeholders or reduced-motion contexts.
+  - name: className
+    type: string
+    description: Extra classes (commonly used to override the default surface colour).
+composedOf: []
+tokensUsed:
+  - bg-2
+code:
+  - language: tsx
+    label: components/ui/skeleton.tsx
+    code: |
+      import { cn } from '@/lib/cn';
+
+      interface SkeletonProps {
+        className?: string;
+        width?: string | number;
+        height?: string | number;
+        rounded?: 'sm' | 'md' | 'lg' | 'full';
+        animate?: boolean;
+      }
+
+      export function Skeleton({
+        className, width, height = 16, rounded = 'md', animate = true,
+      }: SkeletonProps) {
+        const radiusMap = { sm: '4px', md: '6px', lg: '8px', full: '9999px' };
+        return (
+          <div
+            className={cn(animate && 'animate-pulse', className)}
+            style={{
+              width: typeof width === 'number' ? `${width}px` : width,
+              height: typeof height === 'number' ? `${height}px` : height,
+              borderRadius: radiusMap[rounded],
+              backgroundColor: 'var(--bg-2)',
+            }}
+          />
+        );
+      }
+---
+
+Geist's Skeleton is maximally unopinionated — the consumer picks the dimensions, the component handles the visual language. No built-in presets for "text line" vs "avatar" vs "card body"; the author composes those out of sized Skeletons.
+
+The surface uses `var(--bg-2)` rather than a dedicated skeleton token, so skeletons naturally match the system's secondary background colour everywhere. That keeps them invisible against panels and visible against primary surfaces — the right signal in both cases.
+
+`animate` defaults to `true` but can be disabled globally via `prefers-reduced-motion`; the `animate-pulse` Tailwind utility itself respects the user preference.

@@ -1,0 +1,86 @@
+---
+slug: tabs
+name: Tabs
+summary: Controlled tablist with underline indicator; Tab and TabPanel children.
+category: navigation
+patternSlug: tabs
+states:
+  - default
+  - hover
+  - focus-visible
+  - active
+  - disabled
+variants: []
+api:
+  - name: value
+    type: string
+    required: true
+    description: The slug of the currently active tab. Controlled externally.
+  - name: onChange
+    type: "(value: string) => void"
+    required: true
+    description: Called when a tab is activated (click or keyboard).
+  - name: className
+    type: string
+    description: Extra classes applied to the tablist container.
+composedOf: []
+tokensUsed:
+  - foreground
+  - border
+code:
+  - language: tsx
+    label: components/ui/tabs.tsx
+    code: |
+      'use client';
+      import { createContext, useContext } from 'react';
+      import { cn } from '@/lib/cn';
+
+      const TabsContext = createContext<{ value: string; onChange: (v: string) => void }>({
+        value: '', onChange: () => {},
+      });
+
+      export function Tabs({ value, onChange, children, className }: {
+        value: string; onChange: (v: string) => void;
+        children: React.ReactNode; className?: string;
+      }) {
+        return (
+          <TabsContext.Provider value={{ value, onChange }}>
+            <div role="tablist" className={cn('flex border-b border-[var(--border)]', className)}>
+              {children}
+            </div>
+          </TabsContext.Provider>
+        );
+      }
+
+      export function Tab({ value, children, disabled, badge }: {
+        value: string; children: React.ReactNode; disabled?: boolean; badge?: React.ReactNode;
+      }) {
+        const ctx = useContext(TabsContext);
+        const active = ctx.value === value;
+        return (
+          <button role="tab" aria-selected={active} disabled={disabled}
+            onClick={() => !disabled && ctx.onChange(value)}
+            className={cn(
+              'px-4 py-2.5 text-sm transition-colors relative',
+              'border-b-2 -mb-px',
+              active ? 'border-foreground text-foreground font-medium' : 'border-transparent text-gray-500 hover:text-foreground',
+              disabled && 'opacity-40 cursor-not-allowed'
+            )}>
+            <span className="flex items-center gap-2">{children}{badge}</span>
+          </button>
+        );
+      }
+
+      export function TabPanel({ value, activeValue, children }: {
+        value: string; activeValue: string; children: React.ReactNode;
+      }) {
+        if (value !== activeValue) return null;
+        return <div role="tabpanel">{children}</div>;
+      }
+---
+
+Geist's Tabs stays fully controlled — no internal state, no defaultValue. That's on brand: most Geist components hand control to the consumer so URL-syncing and prop-driven activation work without wrapping adapters.
+
+The underline indicator is achieved via `border-b-2 -mb-px` — the active tab's bottom border overlaps the tablist's own border. Simpler than sliding an absolute-positioned indicator with layout measurements, and naturally correct under wrapping, RTL, and dynamic tab counts.
+
+`TabPanel` takes `activeValue` separately rather than reading from context. That keeps panels outside the tablist DOM tree, which is required when the panel sits far from the tabs (e.g. tabs in the header, panels in a full-width main).

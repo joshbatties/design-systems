@@ -1,0 +1,57 @@
+---
+slug: spinner
+name: Spinner
+summary: Indeterminate loading indicator; 3 sizes; a rotating ring built from border tokens.
+category: feedback
+patternSlug: spinner
+states:
+  - default
+variants: []
+api:
+  - name: size
+    type: '"sm" | "md" | "lg"'
+    default: '"md"'
+    description: "14px / 20px / 32px. `sm` is the canonical in-button loader."
+  - name: className
+    type: string
+    description: Extra classes (commonly used to tint the leading border).
+composedOf: []
+tokensUsed:
+  - border
+  - foreground
+code:
+  - language: tsx
+    label: components/ui/spinner.tsx
+    code: |
+      import { cn } from '@/lib/cn';
+
+      interface SpinnerProps {
+        size?: 'sm' | 'md' | 'lg';
+        className?: string;
+      }
+
+      const sizes = {
+        sm: 'w-3.5 h-3.5 border-[1.5px]',
+        md: 'w-5 h-5 border-2',
+        lg: 'w-8 h-8 border-2',
+      };
+
+      export function Spinner({ size = 'md', className }: SpinnerProps) {
+        return (
+          <div
+            role="status"
+            aria-label="Loading"
+            className={cn(
+              'rounded-full border-[var(--border)] border-t-foreground animate-spin',
+              sizes[size], className
+            )}
+          />
+        );
+      }
+---
+
+The ring is a single div: `border-[var(--border)]` on three sides, `border-t-foreground` on the fourth, `animate-spin`. No SVG, no multiple DOM nodes, respects the system's border and foreground tokens automatically in dark/light.
+
+`sm` is deliberately sized to sit flush inside a `sm` Button — 14px fits the button's 32px height with the standard gap. When pairing a Spinner with text, prefer `sm` inside buttons and `md` standalone.
+
+`role="status"` + `aria-label="Loading"` provides a basic live-region announcement. For progress-driven contexts (e.g. a file upload), prefer a determinate progress component; Spinner is only for truly indeterminate waits.

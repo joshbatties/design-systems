@@ -39,6 +39,18 @@ componentPatterns:
     name: Tooltip Trigger
     description: Element that activates a tooltip on hover or focus.
 
+  - slug: callout
+    name: Callout
+    description: Inline notice or annotation that draws attention without blocking flow.
+
+  - slug: spinner
+    name: Spinner
+    description: Indeterminate loading indicator.
+
+  - slug: skeleton
+    name: Skeleton
+    description: Placeholder shape shown while content loads, to preserve layout.
+
 # Section patterns — cross-system compositions. Same >=2 rule.
 sectionPatterns: []
 

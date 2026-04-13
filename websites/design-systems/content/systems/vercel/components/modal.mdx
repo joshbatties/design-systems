@@ -1,0 +1,114 @@
+---
+slug: modal
+name: Modal
+summary: Focus-trapped dialog overlay with title, body, and optional action footer.
+category: overlays
+patternSlug: dialog
+states:
+  - default
+  - focus-visible
+variants: []
+api:
+  - name: open
+    type: boolean
+    required: true
+    description: Whether the modal is rendered. The component unmounts when false.
+  - name: onClose
+    type: () => void
+    required: true
+    description: Called on backdrop click, Esc press, or header close button.
+  - name: title
+    type: string
+    required: true
+    description: Required heading; wired to aria-labelledby on the dialog.
+  - name: description
+    type: string
+    description: Optional sub-heading under the title.
+  - name: actions
+    type: ReactNode
+    description: Footer actions (usually Buttons); pinned to the right.
+  - name: className
+    type: string
+    description: Extra classes applied to the dialog surface.
+composedOf: []
+tokensUsed:
+  - background
+  - border
+  - bg-2
+  - shadow-modal
+  - ease-spring
+code:
+  - language: tsx
+    label: components/ui/modal.tsx
+    code: |
+      'use client';
+      import { useEffect, useRef } from 'react';
+      import { cn } from '@/lib/cn';
+      import { trapFocus } from '@/lib/focus-trap';
+
+      interface ModalProps {
+        open: boolean;
+        onClose: () => void;
+        title: string;
+        description?: string;
+        children: React.ReactNode;
+        actions?: React.ReactNode;
+        className?: string;
+      }
+
+      export function Modal({ open, onClose, title, description, children, actions, className }: ModalProps) {
+        const ref = useRef<HTMLDivElement>(null);
+        const prevFocus = useRef<HTMLElement | null>(null);
+
+        useEffect(() => {
+          if (!open) return;
+          prevFocus.current = document.activeElement as HTMLElement;
+          document.body.style.overflow = 'hidden';
+          const timer = setTimeout(() => {
+            if (ref.current) trapFocus(ref.current);
+          }, 50);
+          return () => {
+            clearTimeout(timer);
+            document.body.style.overflow = '';
+            prevFocus.current?.focus();
+          };
+        }, [open]);
+
+        useEffect(() => {
+          if (!open) return;
+          const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+          document.addEventListener('keydown', handler);
+          return () => document.removeEventListener('keydown', handler);
+        }, [open, onClose]);
+
+        if (!open) return null;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60 animate-[fadeIn_150ms]" onClick={onClose} />
+            <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="modal-title"
+              className={cn('relative w-full max-w-md bg-[var(--background)] rounded-xl',
+                'border border-[var(--border)] shadow-[var(--shadow-modal)]',
+                'animate-[scaleIn_200ms_var(--ease-spring)]', className)}>
+              <div className="p-6 border-b border-[var(--border)]">
+                <h2 id="modal-title" className="text-base font-semibold">{title}</h2>
+                {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+              </div>
+              <div className="p-6">{children}</div>
+              {actions && (
+                <div className="px-6 py-4 border-t border-[var(--border)] bg-[var(--bg-2)]
+                  flex justify-end gap-2 rounded-b-xl">{actions}</div>
+              )}
+            </div>
+          </div>
+        );
+      }
+---
+
+Three responsibilities bundled into one component, in the order they matter:
+
+1. **Focus trap on open.** `trapFocus` moves focus inside after a 50ms delay so that content painted during the scale-in animation is already present to receive focus. On close, the previously-focused element is restored.
+2. **Scroll lock.** `document.body.style.overflow = 'hidden'` during the modal's lifetime stops background scroll, restored on cleanup.
+3. **Dismiss paths.** Esc key, backdrop click, and any `onClose` wired into `actions`. Clicking the dialog surface itself does not dismiss.
+
+The `scaleIn` + `fadeIn` animations use a shared `--ease-spring` token so transitions across the whole system feel like the same motion vocabulary.
