@@ -5,11 +5,13 @@ import matter from "gray-matter";
 import {
   makeSystemSchema,
   makeComponentFrontmatterSchema,
+  type CodeBlock,
   type ComponentEntity,
   type ContentGraph,
   type SystemEntity,
 } from "./schema";
 import { loadTaxonomy } from "./taxonomy";
+import { highlightBlock } from "./highlight";
 
 export class ContentError extends Error {
   constructor(public file: string, message: string) {
@@ -39,7 +41,9 @@ function listFiles(path: string, ext: string): string[] {
   return readdirSync(path).filter((name) => name.endsWith(ext));
 }
 
-export function loadContent(opts: LoadOptions): ContentGraph {
+export async function loadContent(
+  opts: LoadOptions
+): Promise<ContentGraph> {
   const tax = loadTaxonomy(opts.contentRoot);
   const systemSchema = makeSystemSchema(tax);
   const componentSchema = makeComponentFrontmatterSchema(tax);
@@ -47,51 +51,61 @@ export function loadContent(opts: LoadOptions): ContentGraph {
   const systemsRoot = join(opts.contentRoot, "systems");
   const systemSlugs = listDirs(systemsRoot);
 
-  const systems: SystemEntity[] = systemSlugs.map((dirSlug) => {
-    const systemDir = join(systemsRoot, dirSlug);
-    const systemFile = join(systemDir, "system.yaml");
-    if (!existsSync(systemFile)) {
-      throw new ContentError(systemFile, "missing system.yaml");
-    }
+  const systems: SystemEntity[] = await Promise.all(
+    systemSlugs.map(async (dirSlug) => {
+      const systemDir = join(systemsRoot, dirSlug);
+      const systemFile = join(systemDir, "system.yaml");
+      if (!existsSync(systemFile)) {
+        throw new ContentError(systemFile, "missing system.yaml");
+      }
 
-    const systemRaw = readFileSync(systemFile, "utf8");
-    const systemParsed = parseYaml(systemRaw);
-    const systemResult = systemSchema.safeParse(systemParsed);
-    if (!systemResult.success) {
-      throw new ContentError(
-        systemFile,
-        `schema errors:\n${JSON.stringify(systemResult.error.issues, null, 2)}`
-      );
-    }
-    const system = systemResult.data;
-    if (system.slug !== dirSlug) {
-      throw new ContentError(
-        systemFile,
-        `slug "${system.slug}" does not match directory "${dirSlug}"`
-      );
-    }
+      const systemRaw = readFileSync(systemFile, "utf8");
+      const systemParsed = parseYaml(systemRaw);
+      const systemResult = systemSchema.safeParse(systemParsed);
+      if (!systemResult.success) {
+        throw new ContentError(
+          systemFile,
+          `schema errors:\n${JSON.stringify(
+            systemResult.error.issues,
+            null,
+            2
+          )}`
+        );
+      }
+      const system = systemResult.data;
+      if (system.slug !== dirSlug) {
+        throw new ContentError(
+          systemFile,
+          `slug "${system.slug}" does not match directory "${dirSlug}"`
+        );
+      }
 
-    const components = loadComponents({
-      systemDir,
-      systemSlug: system.slug,
-      componentSchema,
-    });
+      const components = await loadComponents({
+        systemDir,
+        systemSlug: system.slug,
+        componentSchema,
+      });
 
-    return {
-      ...system,
-      components,
-      tokens: [],
-      sections: [],
-      recipes: [],
-    };
-  });
+      return {
+        ...system,
+        components,
+        tokens: [],
+        sections: [],
+        recipes: [],
+      };
+    })
+  );
 
   validateCrossRefs(systems);
 
   return { systems };
 }
 
-function loadComponents({
+async function highlightAll(blocks: CodeBlock[]): Promise<CodeBlock[]> {
+  return Promise.all(blocks.map((b) => highlightBlock(b)));
+}
+
+async function loadComponents({
   systemDir,
   systemSlug,
   componentSchema,
@@ -99,39 +113,52 @@ function loadComponents({
   systemDir: string;
   systemSlug: string;
   componentSchema: ReturnType<typeof makeComponentFrontmatterSchema>;
-}): ComponentEntity[] {
+}): Promise<ComponentEntity[]> {
   const dir = join(systemDir, "components");
   const files = listFiles(dir, ".mdx");
 
-  return files.map((filename) => {
-    const path = join(dir, filename);
-    const raw = readFileSync(path, "utf8");
-    const { data, content } = matter(raw);
-    const result = componentSchema.safeParse(data);
-    if (!result.success) {
-      throw new ContentError(
-        path,
-        `frontmatter errors:\n${JSON.stringify(
-          result.error.issues,
-          null,
-          2
-        )}`
+  return Promise.all(
+    files.map(async (filename) => {
+      const path = join(dir, filename);
+      const raw = readFileSync(path, "utf8");
+      const { data, content } = matter(raw);
+      const result = componentSchema.safeParse(data);
+      if (!result.success) {
+        throw new ContentError(
+          path,
+          `frontmatter errors:\n${JSON.stringify(
+            result.error.issues,
+            null,
+            2
+          )}`
+        );
+      }
+      const frontmatter = result.data;
+      const expectedFilename = `${frontmatter.slug}.mdx`;
+      if (filename !== expectedFilename) {
+        throw new ContentError(
+          path,
+          `filename does not match slug; expected "${expectedFilename}"`
+        );
+      }
+
+      const code = await highlightAll(frontmatter.code);
+      const variants = await Promise.all(
+        frontmatter.variants.map(async (v) => ({
+          ...v,
+          code: await highlightAll(v.code),
+        }))
       );
-    }
-    const frontmatter = result.data;
-    const expectedFilename = `${frontmatter.slug}.mdx`;
-    if (filename !== expectedFilename) {
-      throw new ContentError(
-        path,
-        `filename does not match slug; expected "${expectedFilename}"`
-      );
-    }
-    return {
-      ...frontmatter,
-      systemSlug,
-      body: content.trim(),
-    };
-  });
+
+      return {
+        ...frontmatter,
+        code,
+        variants,
+        systemSlug,
+        body: content.trim(),
+      };
+    })
+  );
 }
 
 function validateCrossRefs(systems: SystemEntity[]) {

@@ -17,3 +17,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Shiki output — override the theme surface so code blocks sit on our
+   container background, and give the code room to breathe. */
+.shiki-host pre.shiki {
+  margin: 0;
+  padding: 16px 18px;
+  background: transparent !important;
+  overflow-x: auto;
+}
+
+.shiki-host pre.shiki code {
+  display: block;
+  min-width: max-content;
+}
+
+.shiki-host pre.shiki .line {
+  display: block;
+  min-height: 1em;
+}

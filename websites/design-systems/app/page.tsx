@@ -3,18 +3,18 @@ import { systems } from "@/app/data/systems";
 import { SystemCard } from "@/app/components/SystemCard";
 import { getAllComponents } from "@/lib/content";
 
-const componentsBySystem = getAllComponents().reduce<
-  Record<string, { slug: string; name: string; category: string }[]>
->((acc, { system, component }) => {
-  (acc[system.slug] ??= []).push({
-    slug: component.slug,
-    name: component.name,
-    category: component.category,
-  });
-  return acc;
-}, {});
+export default async function Home() {
+  const componentsBySystem = (await getAllComponents()).reduce<
+    Record<string, { slug: string; name: string; category: string }[]>
+  >((acc, { system, component }) => {
+    (acc[system.slug] ??= []).push({
+      slug: component.slug,
+      name: component.name,
+      category: component.category,
+    });
+    return acc;
+  }, {});
 
-export default function Home() {
   const totalComponents = systems.reduce(
     (acc, s) => acc + s.componentCount,
     0

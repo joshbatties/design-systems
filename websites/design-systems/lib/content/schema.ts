@@ -66,6 +66,8 @@ export const codeBlockSchema = z.object({
   ]),
   label: z.string().optional(),
   code: z.string(),
+  /** Pre-rendered, syntax-highlighted HTML. Populated by the loader. */
+  html: z.string().optional(),
 });
 export type CodeBlock = z.infer<typeof codeBlockSchema>;
 

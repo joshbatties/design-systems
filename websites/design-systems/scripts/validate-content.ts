@@ -6,8 +6,8 @@ import { loadContent, ContentError } from "../lib/content";
 const here = dirname(fileURLToPath(import.meta.url));
 const contentRoot = resolve(here, "..", "content");
 
-try {
-  const graph = loadContent({ contentRoot });
+async function main() {
+  const graph = await loadContent({ contentRoot });
   const systemCount = graph.systems.length;
   const componentCount = graph.systems.reduce(
     (acc, s) => acc + s.components.length,
@@ -24,12 +24,13 @@ try {
       );
     }
   }
-  process.exit(0);
-} catch (err) {
+}
+
+main().catch((err) => {
   if (err instanceof ContentError) {
     console.error("content error:", err.message);
   } else {
     console.error(err);
   }
   process.exit(1);
-}
+});

@@ -8,35 +8,36 @@ import type {
 
 const contentRoot = resolve(process.cwd(), "content");
 
-let graph: ContentGraph | null = null;
+let graphPromise: Promise<ContentGraph> | null = null;
 
-function getGraph(): ContentGraph {
-  if (!graph) graph = loadContent({ contentRoot });
-  return graph;
+function getGraph(): Promise<ContentGraph> {
+  if (!graphPromise) graphPromise = loadContent({ contentRoot });
+  return graphPromise;
 }
 
-export function getAllSystems(): SystemEntity[] {
-  return getGraph().systems;
+export async function getAllSystems(): Promise<SystemEntity[]> {
+  return (await getGraph()).systems;
 }
 
-export function getSystem(slug: string): SystemEntity | undefined {
-  return getGraph().systems.find((s) => s.slug === slug);
+export async function getSystem(
+  slug: string
+): Promise<SystemEntity | undefined> {
+  return (await getAllSystems()).find((s) => s.slug === slug);
 }
 
-export function getComponent(
+export async function getComponent(
   systemSlug: string,
   componentSlug: string
-): ComponentEntity | undefined {
-  return getSystem(systemSlug)?.components.find(
-    (c) => c.slug === componentSlug
-  );
+): Promise<ComponentEntity | undefined> {
+  const system = await getSystem(systemSlug);
+  return system?.components.find((c) => c.slug === componentSlug);
 }
 
-export function getAllComponents(): {
-  system: SystemEntity;
-  component: ComponentEntity;
-}[] {
-  return getGraph().systems.flatMap((system) =>
+export async function getAllComponents(): Promise<
+  { system: SystemEntity; component: ComponentEntity }[]
+> {
+  const systems = await getAllSystems();
+  return systems.flatMap((system) =>
     system.components.map((component) => ({ system, component }))
   );
 }

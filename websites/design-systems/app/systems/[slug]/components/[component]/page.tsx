@@ -10,8 +10,8 @@ import { CodeBlockTabs } from "@/app/components/content/CodeBlock";
 import { PropsTable } from "@/app/components/content/PropsTable";
 import { Markdown } from "@/app/components/content/Markdown";
 
-export function generateStaticParams() {
-  return getAllComponents().map(({ system, component }) => ({
+export async function generateStaticParams() {
+  return (await getAllComponents()).map(({ system, component }) => ({
     slug: system.slug,
     component: component.slug,
   }));
@@ -23,8 +23,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string; component: string }>;
 }): Promise<Metadata> {
   const { slug, component } = await params;
-  const sys = getSystem(slug);
-  const comp = getComponent(slug, component);
+  const sys = await getSystem(slug);
+  const comp = await getComponent(slug, component);
   if (!sys || !comp) return {};
   return {
     title: `${comp.name} — ${sys.name} | Design Systems`,
@@ -38,8 +38,8 @@ export default async function ComponentDetailPage({
   params: Promise<{ slug: string; component: string }>;
 }) {
   const { slug, component } = await params;
-  const system = getSystem(slug);
-  const comp = getComponent(slug, component);
+  const system = await getSystem(slug);
+  const comp = await getComponent(slug, component);
   if (!system || !comp) notFound();
 
   return (

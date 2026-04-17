@@ -56,9 +56,16 @@ export function CodeBlockTabs({ blocks, defaultIndex = 0 }: Props) {
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <pre className="m-0 p-4 text-[12px] leading-relaxed text-white/85 font-mono overflow-x-auto">
-        <code>{current.code}</code>
-      </pre>
+      {current.html ? (
+        <div
+          className="shiki-host text-[12px] leading-relaxed font-mono overflow-x-auto"
+          dangerouslySetInnerHTML={{ __html: current.html }}
+        />
+      ) : (
+        <pre className="m-0 p-4 text-[12px] leading-relaxed text-white/85 font-mono overflow-x-auto">
+          <code>{current.code}</code>
+        </pre>
+      )}
     </div>
   );
 }
